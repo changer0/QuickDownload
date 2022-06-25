@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onProgress(int progress) {
-                //LogUtil.i("MainActivity | onProgress " + progress);
+                LogUtil.i("MainActivity | onProgress " + progress);
                 runOnUiThread(() -> {
                     progressBar.setProgress(progress);
                 });

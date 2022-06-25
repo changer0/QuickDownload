@@ -48,6 +48,11 @@ public class DownloadSegment {
      */
     private volatile int progress;
 
+    /**
+     * 重试次数
+     */
+    private int retryCount = 0;
+
 
     public long getLength() {
         return endPos - startPos + 1;
@@ -92,6 +97,14 @@ public class DownloadSegment {
 
     public void setProgress(int progress) {
         this.progress = progress;
+    }
+
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
     }
 
     @NonNull

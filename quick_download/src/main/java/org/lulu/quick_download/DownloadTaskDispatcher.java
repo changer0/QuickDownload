@@ -93,21 +93,21 @@ public class DownloadTaskDispatcher implements Runnable{
         String acceptRanges = response.header("Accept-Ranges");
         if ("bytes".equalsIgnoreCase(acceptRanges)) {
             LogUtil.i("support split download");
-            downloadInfo.isSupportSplit = true;
+            downloadInfo.setSupportSplit(true);
         } else {
-            downloadInfo.isSupportSplit = false;
+            downloadInfo.setSupportSplit(false);
         }
         ResponseBody body = response.body();
         if (body != null) {
-            downloadInfo.totalLength = body.contentLength();
+            downloadInfo.setTotalLength(body.contentLength());
         }
         response.close();
-        if (downloadInfo.totalLength <= 0) {
+        if (downloadInfo.getTotalLength() <= 0) {
             notifyDownloadSegmentFailure(new RuntimeException("prepareDownloadInfo totalLength <= 0"));
             LogUtil.e("obtain file total length failed!");
             return;
         }
-        if (downloadInfo.isSupportSplit) {
+        if (downloadInfo.isSupportSplit()) {
             splitSegments();
         }
         isReady = true;
@@ -122,28 +122,29 @@ public class DownloadTaskDispatcher implements Runnable{
      * 拆分下载块
      */
     void splitSegments() {
-        long len = downloadInfo.totalLength;
-        downloadInfo.segments = new DownloadSegment[THREAD_SIZE];
+        long len = downloadInfo.getTotalLength();
+        DownloadSegment[] segments = new DownloadSegment[THREAD_SIZE];
+        downloadInfo.setSegments(segments);
         //每个分块的大小
         long splitSize = len / THREAD_SIZE;
 
         //根据线程数拆分
-        for (int i = 0; i < downloadInfo.segments.length; i++) {
+        for (int i = 0; i < segments.length; i++) {
             DownloadSegment segment = new DownloadSegment();
             //开始位置
             long startPos = i * splitSize;
             segment.setStartPos(startPos);
             long end;
-            if (i == downloadInfo.segments.length - 1) {
+            if (i == segments.length - 1) {
                 //最后一块
-                end = downloadInfo.totalLength - 1;
+                end = downloadInfo.getTotalLength() - 1;
             } else {
                 end = startPos + splitSize - 1;
             }
             //结束位置
             segment.setEndPos(end);
             segment.setIndex(i);
-            downloadInfo.segments[i] = segment;
+            segments[i] = segment;
         }
     }
 
@@ -155,10 +156,11 @@ public class DownloadTaskDispatcher implements Runnable{
             LogUtil.e("no ready!");
             return;
         }
+        DownloadSegment[] segments = downloadInfo.getSegments();
         if (downloadInfo.isSegmentsEnable()) {
             LogUtil.i("launch split download...");
-            for (int i = 0; i < downloadInfo.segments.length; i++) {
-                startSegmentDownload(downloadInfo.segments[i]);
+            for (int i = 0; i < segments.length; i++) {
+                startSegmentDownload(segments[i]);
             }
             startProgressLooper();
         }
@@ -192,6 +194,7 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         if (downloadInfo.isDownloadFinish()) {
             listener.onSegmentDownloadFinish(segment);
+            progressHandler.forceFinish();
             listener.onDownloadSuccess();
         } else {
             listener.onSegmentDownloadFinish(segment);

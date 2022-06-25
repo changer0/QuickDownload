@@ -42,7 +42,8 @@ public class ProgressHandler extends Handler {
             return;
         }
         int tempProgress = 0;
-        for (DownloadSegment segment : downloadInfo.segments) {
+        DownloadSegment[] segments = downloadInfo.getSegments();
+        for (DownloadSegment segment : segments) {
             if (segment.getState() == DownloadSegment.State.FAILURE) {
                 LogUtil.i("downloading progress : failure looper quit");
                 getLooper().quit();
@@ -55,10 +56,11 @@ public class ProgressHandler extends Handler {
             //LogUtil.i(segment.getIndex() + " current segment progress: " + progress);
         }
 
-        int allProgress = tempProgress / downloadInfo.segments.length;
+        int allProgress = tempProgress / segments.length;
 
         if (allProgress >= 100) {
-            LogUtil.i("downloading progress : 100");
+            //see forceFinish
+            LogUtil.i("downloading progress : finish");
             getLooper().quit();
             return;
         }
@@ -68,6 +70,16 @@ public class ProgressHandler extends Handler {
         }
         LogUtil.i("downloading allProgress : " + allProgress + " tempProgress: " + tempProgress);
         sendEmptyMessageDelayed(0, 300);
+    }
+
+    /**
+     * 通知强制完成
+     */
+    public void forceFinish() {
+        DownloadListener listener = downloadParams.getListener();
+        if (listener != null) {
+            listener.onProgress(100);
+        }
     }
 
     public void terminate() {

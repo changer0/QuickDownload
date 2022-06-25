@@ -11,16 +11,40 @@ public class DownloadInfo {
     /**
      * 文件长度
      */
-    public long totalLength;
+    private long totalLength;
     /**
      * 是否支持断点续传
      */
-    public boolean isSupportSplit;
+    private boolean isSupportSplit;
 
     /**
      * 下载块
      */
-    public volatile DownloadSegment[] segments;
+    private volatile DownloadSegment[] segments;
+
+    public long getTotalLength() {
+        return totalLength;
+    }
+
+    public void setTotalLength(long totalLength) {
+        this.totalLength = totalLength;
+    }
+
+    public boolean isSupportSplit() {
+        return isSupportSplit;
+    }
+
+    public void setSupportSplit(boolean supportSplit) {
+        isSupportSplit = supportSplit;
+    }
+
+    public DownloadSegment[] getSegments() {
+        return segments;
+    }
+
+    public void setSegments(DownloadSegment[] segments) {
+        this.segments = segments;
+    }
 
     /**
      * 下载块是否可用
