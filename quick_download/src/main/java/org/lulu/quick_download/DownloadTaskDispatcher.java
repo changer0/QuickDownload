@@ -39,6 +39,11 @@ public class DownloadTaskDispatcher implements Runnable{
     private boolean isReady = false;
 
     /**
+     * 是否正在运行
+     */
+    private volatile boolean isRunning = false;
+
+    /**
      * 下载参数
      */
     private final DownloadParams downloadParams;
@@ -61,6 +66,7 @@ public class DownloadTaskDispatcher implements Runnable{
 
     @Override
     public void run() {
+        isRunning = true;
         prepareDownloadInfo();
         launchDownload();
     }
@@ -81,7 +87,7 @@ public class DownloadTaskDispatcher implements Runnable{
             e.printStackTrace();
         }
         if (response == null) {
-            // TODO: 2022/6/25 回调
+            notifyDownloadSegmentFailure(new RuntimeException("prepareDownloadInfo response == null"));
             return;
         }
         String acceptRanges = response.header("Accept-Ranges");
@@ -97,7 +103,7 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         response.close();
         if (downloadInfo.totalLength <= 0) {
-            // TODO: 2022/6/25 回调
+            notifyDownloadSegmentFailure(new RuntimeException("prepareDownloadInfo totalLength <= 0"));
             LogUtil.e("obtain file total length failed!");
             return;
         }
@@ -105,6 +111,10 @@ public class DownloadTaskDispatcher implements Runnable{
             splitSegments();
         }
         isReady = true;
+        DownloadListener listener = downloadParams.getListener();
+        if (listener != null) {
+            listener.onReady(downloadParams, downloadInfo);
+        }
     }
 
 
@@ -168,13 +178,14 @@ public class DownloadTaskDispatcher implements Runnable{
             @Override
             public void onFailure(DownloadSegment segment, Throwable e) {
                 progressHandler.terminate();
-                notifyDownloadSegmentFailure(segment, e);
+                notifyDownloadSegmentFailure(e);
             }
         });
         config.getExecutor().execute(segmentTask);
     }
 
     private void notifyDownloadSegmentSuccess(DownloadSegment segment) {
+        isRunning = false;
         DownloadListener listener = downloadParams.getListener();
         if (listener == null) {
             return;
@@ -187,18 +198,23 @@ public class DownloadTaskDispatcher implements Runnable{
         }
     }
 
-    private void notifyDownloadSegmentFailure(DownloadSegment segment, Throwable e) {
+    private void notifyDownloadSegmentFailure(Throwable e) {
+        isRunning = false;
         DownloadListener listener = downloadParams.getListener();
         if (listener == null) {
             return;
         }
-        listener.onFailure(segment, e);
+        listener.onDownloadFailure(e);
     }
     private void startProgressLooper() {
         HandlerThread handlerThread = new HandlerThread("quick_download_progress_update");
         handlerThread.start();
         progressHandler = new ProgressHandler(handlerThread.getLooper(), downloadParams, downloadInfo);
         progressHandler.sendEmptyMessage(0);
+    }
+
+    public boolean isRunning() {
+        return isRunning;
     }
 
 }

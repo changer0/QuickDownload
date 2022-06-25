@@ -1,6 +1,5 @@
 package org.lulu.quickdownload;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -10,10 +9,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.lulu.quick_download.DownloadInfo;
 import org.lulu.quick_download.DownloadListener;
+import org.lulu.quick_download.DownloadParams;
 import org.lulu.quick_download.DownloadSegment;
 import org.lulu.quick_download.LogUtil;
 import org.lulu.quick_download.QuickDownload;
@@ -24,12 +25,15 @@ public class MainActivity extends AppCompatActivity {
 
     private final String downloadUrl = "https://ucan.25pp.com/Wandoujia_web_seo_baidu_homepage.apk";
     private File descFile;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        progressBar = findViewById(R.id.progress_bar);
         descFile = new File(getExternalCacheDir() + "/" + "test.apk");
+        progressBar.setMax(100);
     }
 
     public void clickButton1(View view) {
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         long startTime = System.currentTimeMillis();
         QuickDownload.getInstance().addTask(downloadUrl, descFile, new DownloadListener() {
             @Override
-            public void onReady(DownloadInfo info) {
+            public void onReady(DownloadParams params, DownloadInfo info) {
                 LogUtil.i("MainActivity | onReady " + info);
             }
 
@@ -48,17 +52,23 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDownloadSuccess() {
-                LogUtil.i("MainActivity | onDownloadSuccess " + (System.currentTimeMillis() - startTime) / 1000 + "s");
+                String time = (System.currentTimeMillis() - startTime) / 1000 + "s";
+                LogUtil.i("MainActivity | onDownloadSuccess " + time);
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载完成: " + time, Toast.LENGTH_SHORT).show());
             }
 
             @Override
-            public void onFailure(@NonNull DownloadSegment segment, Throwable e) {
-                LogUtil.i("MainActivity | onFailure " + segment + " " + Log.getStackTraceString(e));
+            public void onDownloadFailure(Throwable e) {
+                LogUtil.i("MainActivity | onFailure " + Log.getStackTraceString(e));
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载失败", Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onProgress(int progress) {
                 //LogUtil.i("MainActivity | onProgress " + progress);
+                runOnUiThread(() -> {
+                    progressBar.setProgress(progress);
+                });
             }
         });
     }

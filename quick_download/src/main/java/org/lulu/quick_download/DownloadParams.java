@@ -12,10 +12,9 @@ import java.io.File;
  */
 public class DownloadParams {
     @NonNull
-    private String url;
+    private final String url;
     @NonNull
-    private File descFile;
-
+    private final File descFile;
     @Nullable
     private DownloadListener listener;
 
@@ -47,5 +46,9 @@ public class DownloadParams {
         this.url = url;
         this.descFile = descFile;
         this.listener = listener;
+    }
+
+    public String getUniqueId() {
+        return DownloadUtil.getSHA256(url + descFile.getAbsolutePath());
     }
 }

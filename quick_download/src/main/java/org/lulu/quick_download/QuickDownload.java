@@ -1,6 +1,8 @@
 package org.lulu.quick_download;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * author: changer0
@@ -11,6 +13,8 @@ public class QuickDownload {
     private DownloadConfig config = new DownloadConfig();
 
     private static volatile QuickDownload sInstance;
+
+    private final Map<String, DownloadTaskDispatcher> taskDispatcherMap = new HashMap<>();
 
     private QuickDownload() {
     }
@@ -43,9 +47,21 @@ public class QuickDownload {
      * 添加下载任务
      */
     public void addTask(String url, File desFile, DownloadListener listener) {
-        getConfig().getExecutor().execute(new DownloadTaskDispatcher(
-                new DownloadParams(url, desFile, listener)
-        ));
+        addTask(new DownloadParams(url, desFile, listener));
+    }
+
+    public void addTask(DownloadParams downloadParams) {
+        String uniqueId = downloadParams.getUniqueId();
+        DownloadTaskDispatcher downloadTaskDispatcher = taskDispatcherMap.get(uniqueId);
+        //避免重复添加任务
+        if (downloadTaskDispatcher != null && downloadTaskDispatcher.isRunning()) {
+            return;
+        }
+        DownloadTaskDispatcher taskDispatcher = new DownloadTaskDispatcher(
+                downloadParams
+        );
+        getConfig().getExecutor().execute(taskDispatcher);
+        taskDispatcherMap.put(uniqueId, taskDispatcher);
     }
 
 }

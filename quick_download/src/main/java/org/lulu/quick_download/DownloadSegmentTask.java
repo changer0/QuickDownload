@@ -88,7 +88,6 @@ public class DownloadSegmentTask implements Runnable {
         if (raFile == null) {
             throw new IOException("Create RandomAccessFile Failure");
         }
-        // TODO: 2022/6/25 进度通知
         byte[] buffer = new byte[BUFFER_SIZE];
         long segmentLen = 0;
         int len;
