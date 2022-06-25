@@ -56,7 +56,7 @@ public class DownloadTaskDispatcher implements Runnable{
     /**
      * 进度管理
      */
-    protected ProgressHandler progressHandler;
+    private ProgressHandler progressHandler;
 
 
     public DownloadTaskDispatcher(DownloadParams downloadParams) {
@@ -159,8 +159,8 @@ public class DownloadTaskDispatcher implements Runnable{
         DownloadSegment[] segments = downloadInfo.getSegments();
         if (downloadInfo.isSegmentsEnable()) {
             LogUtil.i("launch split download...");
-            for (int i = 0; i < segments.length; i++) {
-                startSegmentDownload(segments[i]);
+            for (DownloadSegment segment : segments) {
+                startSegmentDownload(segment);
             }
             startProgressLooper();
         }

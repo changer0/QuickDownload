@@ -19,9 +19,10 @@ public class ProgressHandler extends Handler {
      */
     private final DownloadParams downloadParams;
 
+    /**
+     * 下载信息
+     */
     private final DownloadInfo downloadInfo;
-
-    private volatile boolean isRunning = false;
 
     public ProgressHandler(Looper looper, DownloadParams downloadParams, DownloadInfo downloadInfo) {
         super(looper);
@@ -31,16 +32,12 @@ public class ProgressHandler extends Handler {
 
     @Override
     public boolean sendMessageAtTime(@NonNull Message msg, long uptimeMillis) {
-        isRunning = true;
         return super.sendMessageAtTime(msg, uptimeMillis);
     }
 
     @Override
     public void handleMessage(@NonNull Message msg) {
         super.handleMessage(msg);
-        if (!isRunning) {
-            return;
-        }
         int tempProgress = 0;
         DownloadSegment[] segments = downloadInfo.getSegments();
         for (DownloadSegment segment : segments) {
@@ -83,6 +80,6 @@ public class ProgressHandler extends Handler {
     }
 
     public void terminate() {
-        isRunning = false;
+        removeCallbacksAndMessages(null);
     }
 }

@@ -72,11 +72,8 @@ public class DownloadSegmentTask implements Runnable {
             notifyFailure(e);
             e.printStackTrace();
         } finally {
-            if (response != null) {
-                response.close();
-            }
+            DownloadUtil.close(response);
         }
-
     }
 
     private String generateSplitRangeHeader(DownloadSegment segment) {
