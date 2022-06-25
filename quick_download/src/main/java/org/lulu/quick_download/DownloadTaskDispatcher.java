@@ -58,6 +58,10 @@ public class DownloadTaskDispatcher implements Runnable{
      */
     private ProgressHandler progressHandler;
 
+    /**
+     * 失败标志
+     */
+    private volatile boolean isFailed = false;
 
     public DownloadTaskDispatcher(DownloadParams downloadParams) {
         this.downloadParams = downloadParams;
@@ -179,7 +183,12 @@ public class DownloadTaskDispatcher implements Runnable{
 
             @Override
             public void onFailure(DownloadSegment segment, Throwable e) {
+                if (isFailed) {
+                    return;
+                }
+                isFailed = true;
                 progressHandler.terminate();
+                // TODO: 2022/6/25 此处做重试逻辑, 避免直接失败, 失败回调限制一次
                 notifyDownloadSegmentFailure(e);
             }
         });
