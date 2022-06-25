@@ -25,6 +25,11 @@ public class DownloadConfig {
      */
     private ILogger logger;
 
+    /**
+     * 线程数量
+     */
+    private int threadCount = -1;
+
     public synchronized Executor getExecutor() {
         if (executor == null) {
             return DefaultDownloadConfig.executorService();
@@ -44,6 +49,13 @@ public class DownloadConfig {
             return DefaultDownloadConfig.logger();
         }
         return logger;
+    }
+
+    public int getThreadCount() {
+        if (threadCount <= 0) {
+            return DefaultDownloadConfig.THREAD_SIZE;
+        }
+        return threadCount;
     }
 
     /**
@@ -73,6 +85,11 @@ public class DownloadConfig {
 
         public Builder log(ILogger log) {
             this.config.logger = log;
+            return this;
+        }
+
+        public Builder threadCount(int threadCount) {
+            this.config.threadCount = threadCount;
             return this;
         }
 

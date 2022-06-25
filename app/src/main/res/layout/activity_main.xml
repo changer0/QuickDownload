@@ -9,23 +9,34 @@
     tools:context=".MainActivity">
     <Button
         android:text="测试下载"
-        android:onClick="clickButton1"
+        android:onClick="testDownload"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
     <Button
         android:text="测试安装"
-        android:onClick="clickButton2"
+        android:onClick="testInstall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
     <Button
         android:text="删除测试文件"
-        android:onClick="clickButton3"
+        android:onClick="removeFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <SeekBar
+        android:id="@+id/thread_count"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:text="下载进度: "
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
     <ProgressBar
         android:id="@+id/progress_bar"
-        android:layout_marginTop="10dp"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>

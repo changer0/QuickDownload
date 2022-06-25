@@ -23,17 +23,6 @@ public class DownloadTaskDispatcher implements Runnable{
     private final OkHttpClient okHttpClient;
 
     /**
-     * CPU核心数
-     */
-    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-
-    /**
-     * 开启线程数量
-     */
-//    public static final int THREAD_SIZE = Math.max(3, Math.min(CPU_COUNT - 1, 6));
-    public static final int THREAD_SIZE = 8;
-
-    /**
      * 准备
      */
     private boolean isReady = false;
@@ -41,7 +30,7 @@ public class DownloadTaskDispatcher implements Runnable{
     /**
      * 是否正在运行
      */
-    private volatile boolean isRunning = false;
+    private volatile boolean isRunning = true;
 
     /**
      * 下载参数
@@ -70,7 +59,7 @@ public class DownloadTaskDispatcher implements Runnable{
 
     @Override
     public void run() {
-        isRunning = true;
+        LogUtil.i("start download : "  + downloadParams);
         prepareDownloadInfo();
         launchDownload();
     }
@@ -127,10 +116,11 @@ public class DownloadTaskDispatcher implements Runnable{
      */
     void splitSegments() {
         long len = downloadInfo.getTotalLength();
-        DownloadSegment[] segments = new DownloadSegment[THREAD_SIZE];
+        int threadCount = config.getThreadCount();
+        DownloadSegment[] segments = new DownloadSegment[threadCount];
         downloadInfo.setSegments(segments);
         //每个分块的大小
-        long splitSize = len / THREAD_SIZE;
+        long splitSize = len / threadCount;
 
         //根据线程数拆分
         for (int i = 0; i < segments.length; i++) {

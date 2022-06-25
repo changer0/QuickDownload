@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import org.lulu.quick_download.DownloadInfo;
@@ -26,18 +27,35 @@ public class MainActivity extends AppCompatActivity {
     private final String downloadUrl = "https://ucan.25pp.com/Wandoujia_web_seo_baidu_homepage.apk";
     private File descFile;
     private ProgressBar progressBar;
+    private SeekBar seekBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         progressBar = findViewById(R.id.progress_bar);
+        seekBar = findViewById(R.id.thread_count);
         descFile = new File(getExternalCacheDir() + "/" + "test.apk");
         progressBar.setMax(100);
+        seekBar.setMax(10);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Toast.makeText(MainActivity.this, "当前线程数: " + progress, Toast.LENGTH_SHORT).show();
+                QuickDownload.getInstance().setConfig(
+                        QuickDownload.getInstance().getConfig().newBuilder().threadCount(progress).build()
+                );
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
     }
 
-    public void clickButton1(View view) {
+    public void testDownload(View view) {
         //Toast.makeText(this, "当前 CPU 个数:" + Runtime.getRuntime().availableProcessors(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "开始下载, 线程数: " + QuickDownload.getInstance().getConfig().getThreadCount(), Toast.LENGTH_SHORT).show();
         long startTime = System.currentTimeMillis();
         QuickDownload.getInstance().addTask(downloadUrl, descFile, new DownloadListener() {
             @Override
@@ -73,12 +91,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void clickButton2(View view) {
-        installApk();
-    }
-
-
-    private void installApk() {
+    public void testInstall(View view) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // 7.0+以上版本
@@ -91,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         this.startActivity(intent);
     }
 
-    public void clickButton3(View view) {
+    public void removeFile(View view) {
         Toast.makeText(this, "删除完成:" + descFile.delete(), Toast.LENGTH_SHORT).show();
     }
 }

@@ -74,4 +74,14 @@ public class DefaultDownloadConfig {
         }
         return sLogger;
     }
+
+    /**
+     * CPU核心数
+     */
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+
+    /**
+     * 开启线程数量
+     */
+    public static final int THREAD_SIZE = Math.max(3, Math.min(CPU_COUNT - 1, 6));
 }
