@@ -41,7 +41,7 @@ public class DownloadTaskDispatcher implements Runnable{
     /**
      * 进度更新 HandlerThread
      */
-    private HandlerThread progressHandlerThread = new HandlerThread("quick_download_progress_update");
+    private final HandlerThread progressHandlerThread = new HandlerThread("quick_download_progress_update");
 
     /**
      * 进度管理
@@ -161,7 +161,7 @@ public class DownloadTaskDispatcher implements Runnable{
         try {
             LogUtil.i("launch single thread download...");
             startSingleThreadProgressLooper();
-            DownloadUtil.directDownload(body, downloadParams);
+            DownloadUtil.directDownload(body, downloadParams, downloadInfo);
             notifyDownloadSuccess();
         } catch (IOException e) {
             progressHandlerThread.quit();

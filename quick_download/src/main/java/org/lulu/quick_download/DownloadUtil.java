@@ -57,7 +57,7 @@ public class DownloadUtil {
     /**
      * 直接下载, 不开启线程
      */
-    public static void directDownload(ResponseBody body, DownloadParams params) throws IOException {
+    public static void directDownload(ResponseBody body, DownloadParams params, DownloadInfo downloadInfo) throws IOException {
         RandomAccessFile raFile = DownloadUtil.prepareDownloadFile(params.getDescFile(), 0);
         if (raFile == null) {
             throw new IOException("Create RandomAccessFile Failure");
@@ -70,6 +70,7 @@ public class DownloadUtil {
             while ((n = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
                 raFile.write(buffer, 0, n);
                 downloadLen += n;
+                downloadInfo.setProgress((int) (downloadLen * 100.0f / downloadInfo.getTotalLength()));
             }
         }
         DownloadUtil.close(raFile);

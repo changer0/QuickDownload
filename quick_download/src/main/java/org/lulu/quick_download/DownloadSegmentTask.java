@@ -124,5 +124,4 @@ public class DownloadSegmentTask implements Runnable {
         void onSuccess(DownloadSegment segment);
         void onFailure(DownloadSegment segment, Throwable e);
     }
-
 }

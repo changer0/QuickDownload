@@ -7,7 +7,9 @@ package org.lulu.quick_download;
 public interface DownloadListener {
 
     /**
-     * 下载块已准备好
+     * 下载信息备好
+     *
+     * 如果是多线程下载此时已完成分片
      *
      */
     default void onReady(DownloadParams params, DownloadInfo info) {

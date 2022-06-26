@@ -32,11 +32,8 @@ public class SingleThreadHandler extends Handler {
     @Override
     public void handleMessage(@NonNull Message msg) {
         super.handleMessage(msg);
-        File file = downloadParams.getDescFile();
-        long contentLength = downloadInfo.getTotalLength();
 
-        long fileSize = file.length();
-        int progress = (int) (fileSize * 100.0 / contentLength);
+        int progress = downloadInfo.getProgress();
         if (progress >= 100) {
             //see forceFinish
             LogUtil.i("SingleThreadHandler | downloading progress : finish");

@@ -52,7 +52,7 @@ public class DefaultDownloadConfig {
     public static Executor executorService() {
         if (sExecutorService == null) {
             sExecutorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(), r -> new Thread(r, "quick_download"));
+                    new SynchronousQueue<>(), r -> new Thread(r, "quick_download"));
         }
         return sExecutorService;
     }
