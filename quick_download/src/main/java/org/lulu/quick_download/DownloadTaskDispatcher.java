@@ -115,8 +115,8 @@ public class DownloadTaskDispatcher implements Runnable{
             LogUtil.e("obtain file total length failed!");
             return;
         }
-        checkFileInfo();
-        if (downloadInfo.isSupportBreakPointTrans() && downloadParams.isUseMultiThread()) {
+        if (downloadInfo.isSupportBreakPointTrans()) {
+            checkFileInfo();
             //先分片
             splitSegments();
             notifyReady();
@@ -214,6 +214,10 @@ public class DownloadTaskDispatcher implements Runnable{
     private void launchSingleThreadDownload(ResponseBody body) {
         try {
             LogUtil.i("launch single thread download...");
+            File descFile = downloadParams.getDescFile();
+            if (descFile.exists()) {
+                LogUtil.i("delete file before download");
+            }
             startSingleThreadProgressLooper();
             DownloadUtil.directDownload(body, downloadParams, downloadInfo);
             notifyDownloadSuccess();

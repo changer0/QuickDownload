@@ -12,11 +12,7 @@
         android:onClick="multiThreadDownload"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
-    <Button
-        android:text="单线程下载"
-        android:onClick="singleThreadDownload"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+
     <Button
         android:text="测试安装"
         android:onClick="testInstall"

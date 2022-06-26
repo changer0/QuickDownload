@@ -58,16 +58,12 @@ public class MainActivity extends AppCompatActivity {
     public void multiThreadDownload(View view) {
         //Toast.makeText(this, "当前 CPU 个数:" + Runtime.getRuntime().availableProcessors(), Toast.LENGTH_SHORT).show();
         Toast.makeText(this, "开始下载, 线程数: " + QuickDownload.getInstance().getConfig().getThreadCount(), Toast.LENGTH_SHORT).show();
-        doDownload(true);
+        doDownload();
     }
 
-    public void singleThreadDownload(View view) {
-        doDownload(false);
-    }
-
-    private void doDownload(boolean useMultiThread) {
+    private void doDownload() {
         long startTime = System.currentTimeMillis();
-        downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, useMultiThread, new DownloadListener() {
+        downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, new DownloadListener() {
             @Override
             public void onReady(DownloadParams params, DownloadInfo info) {
                 Log.i(TAG, "MainActivity | onReady " + info);

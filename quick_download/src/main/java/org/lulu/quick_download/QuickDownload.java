@@ -46,15 +46,8 @@ public class QuickDownload {
     /**
      * 添加下载任务
      */
-    public void addTask(String url, File desFile, DownloadListener listener) {
-        addTask(new DownloadParams(url, desFile, listener));
-    }
-
-    /**
-     * 添加下载任务
-     */
-    public String addTask(String url, File desFile, boolean useMultiThread, DownloadListener listener) {
-        return addTask(new DownloadParams(url, desFile, useMultiThread, listener));
+    public String addTask(String url, File desFile, DownloadListener listener) {
+        return addTask(new DownloadParams(url, desFile, listener));
     }
 
     public String addTask(DownloadParams downloadParams) {
