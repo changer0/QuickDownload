@@ -27,7 +27,7 @@ public class DownloadInfo {
     /**
      * 当前总进度
      */
-    private int progress;
+    private volatile int progress;
 
     public long getTotalLength() {
         return totalLength;
