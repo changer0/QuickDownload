@@ -61,7 +61,7 @@ public class DownloadTaskDispatcher implements Runnable{
     @Override
     public void run() {
         LogUtil.i("start download : "  + downloadParams);
-        LogUtil.i("start prepareDownloadInfo");
+        LogUtil.i("prepareDownloadInfo...");
         downloadInfo = new DownloadInfo();
         Request.Builder builder = new Request.Builder()
                 .url(Objects.requireNonNull(downloadParams.getUrl()))

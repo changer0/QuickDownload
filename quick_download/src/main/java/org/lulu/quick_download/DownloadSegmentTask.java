@@ -86,12 +86,7 @@ public class DownloadSegmentTask implements Runnable {
         while ((len = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
             segmentLen += len;
             raFile.write(buffer, 0, len);
-            int progress = (int) (segmentLen * 100.0F / segment.getLength()) + 1;
-            if (progress > 100) {
-                progress = 100;
-            }
-            //LogUtil.i("writing segment progress: " + progress);
-            segment.setProgress(progress);
+            segment.setDownloadLength(segmentLen);
         }
         DownloadUtil.close(raFile);
         LogUtil.i("writing segment: " + segment.getIndex() + " length" + segment.getLength() + " startPos:" + segment

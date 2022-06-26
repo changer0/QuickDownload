@@ -2,6 +2,7 @@ package org.lulu.quick_download;
 
 
 import androidx.annotation.IntDef;
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 
 import java.lang.annotation.Retention;
@@ -44,19 +45,14 @@ public class DownloadSegment {
     private long endPos;
 
     /**
-     * 进度
+     * 当前块下载长度
      */
-    private volatile int progress;
+    private volatile long downloadLength;
 
     /**
      * 重试次数
      */
     private int retryCount = 0;
-
-
-    public long getLength() {
-        return endPos - startPos + 1;
-    }
 
     public long getStartPos() {
         return startPos;
@@ -91,14 +87,6 @@ public class DownloadSegment {
         this.endPos = endPos;
     }
 
-    public int getProgress() {
-        return progress;
-    }
-
-    public void setProgress(int progress) {
-        this.progress = progress;
-    }
-
     public int getRetryCount() {
         return retryCount;
     }
@@ -106,6 +94,30 @@ public class DownloadSegment {
     public void setRetryCount(int retryCount) {
         this.retryCount = retryCount;
     }
+
+
+    public long getDownloadLength() {
+        return downloadLength;
+    }
+
+    public void setDownloadLength(long downloadLength) {
+        this.downloadLength = downloadLength;
+    }
+
+    @IntRange(from = 0, to = 100)
+    public int getProgress() {
+        int progress = (int) (getDownloadLength() * 100.0F / getLength()) + 1;
+        if (progress > 100) {
+            progress = 100;
+        }
+        return progress;
+    }
+
+
+    public long getLength() {
+        return endPos - startPos + 1;
+    }
+
 
     @NonNull
     @Override

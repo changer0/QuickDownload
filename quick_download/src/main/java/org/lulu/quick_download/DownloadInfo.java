@@ -1,5 +1,6 @@
 package org.lulu.quick_download;
 
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 
 import java.util.Arrays;
@@ -14,6 +15,13 @@ public class DownloadInfo {
      * 文件长度
      */
     private long totalLength;
+
+    /**
+     * 当前总进度
+     */
+    @IntRange(from = 0, to = 100)
+    private volatile int progress;
+
     /**
      * 是否支持断点续传
      */
@@ -24,10 +32,6 @@ public class DownloadInfo {
      */
     private volatile DownloadSegment[] segments;
 
-    /**
-     * 当前总进度
-     */
-    private volatile int progress;
 
     public long getTotalLength() {
         return totalLength;
