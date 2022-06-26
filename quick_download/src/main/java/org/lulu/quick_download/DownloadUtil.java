@@ -1,5 +1,8 @@
 package org.lulu.quick_download;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+
 import androidx.annotation.Nullable;
 
 import java.io.Closeable;
@@ -75,5 +78,15 @@ public class DownloadUtil {
         }
         DownloadUtil.close(raFile);
         DownloadUtil.close(body);
+    }
+
+    public static int getVersionCode(Context context){
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionCode;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

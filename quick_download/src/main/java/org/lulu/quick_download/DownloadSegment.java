@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Objects;
 
 /**
  * 下载块
@@ -23,6 +24,11 @@ public class DownloadSegment {
         int SUCCESS = 2;
         int FAILURE = 3;
     }
+
+    /**
+     * 下载 Id
+     */
+    private String downloadId;
 
     /**
      * 当前的下载状态
@@ -53,6 +59,11 @@ public class DownloadSegment {
      * 重试次数
      */
     private int retryCount = 0;
+
+    public DownloadSegment(String downloadId, int index) {
+        this.downloadId = downloadId;
+        this.index = index;
+    }
 
     public long getStartPos() {
         return startPos;
@@ -102,6 +113,18 @@ public class DownloadSegment {
 
     public void setDownloadLength(long downloadLength) {
         this.downloadLength = downloadLength;
+    }
+
+    public String getDownloadId() {
+        return downloadId;
+    }
+
+    public void setDownloadId(String downloadId) {
+        this.downloadId = downloadId;
+    }
+
+    public String getSegmentId() {
+        return getDownloadId() + "_" + getIndex();
     }
 
     @IntRange(from = 0, to = 100)

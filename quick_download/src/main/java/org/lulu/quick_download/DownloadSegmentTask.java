@@ -2,6 +2,9 @@ package org.lulu.quick_download;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import org.lulu.quick_download.db.DownloadDBHandle;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -76,17 +79,16 @@ public class DownloadSegmentTask implements Runnable {
 
     private String generateSplitRangeHeader(DownloadSegment segment) {
         //起始位置 + 已经下载的进度!
-        long start = segment.getStartPos() + segment.getDownloadLength();
-        return "bytes=" + start + "-" + segment.getEndPos();
+        return "bytes=" + getStartWithDownload(segment) + "-" + segment.getEndPos();
     }
 
     private void writeSegmentToFile(DownloadSegment segment, InputStream in) throws IOException {
-        RandomAccessFile raFile = DownloadUtil.prepareDownloadFile(params.getDescFile(), segment.getStartPos());
+        RandomAccessFile raFile = DownloadUtil.prepareDownloadFile(params.getDescFile(), getStartWithDownload(segment));
         if (raFile == null) {
             throw new IOException("Create RandomAccessFile Failure");
         }
         byte[] buffer = new byte[DownloadConstants.BUFFER_SIZE];
-        long segmentLen = 0;
+        long segmentLen = segment.getDownloadLength();
         int len;
         try {
             while ((len = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
@@ -107,11 +109,20 @@ public class DownloadSegmentTask implements Runnable {
         }
     }
 
+    /**
+     * 包含已经下载过的
+     */
+    private long getStartWithDownload(DownloadSegment segment) {
+        return segment.getStartPos() + segment.getDownloadLength();
+    }
+
     public void cancel() {
         on = false;
     }
 
     private void notifySuccess() {
+        //TestStore.remove(segment.getSegmentId());
+        DownloadDBHandle.getInstance().saveDownloadSegment(segment);
         if (listener == null) {
             return;
         }
@@ -120,6 +131,8 @@ public class DownloadSegmentTask implements Runnable {
 
 
     private void notifyFailure(int errorCode, Throwable e) {
+        //TestStore.putLength(segment.getSegmentId(), segment.getDownloadLength());
+        DownloadDBHandle.getInstance().saveDownloadSegment(segment);
         if (listener == null) {
             return;
         }

@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDownloadSuccess() {
                 String time = (System.currentTimeMillis() - startTime) / 1000 + "s";
-                Log.i(TAG,"MainActivity | onDownloadSuccess " + time);
-                runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载完成: " + time, Toast.LENGTH_SHORT).show());
+                Log.i(TAG,"MainActivity | onDownloadSuccess " + time + " size: " + descFile.length());
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载完成: " + time + " size: " + descFile.length(), Toast.LENGTH_SHORT).show());
             }
 
             @Override

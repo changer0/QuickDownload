@@ -12,6 +12,10 @@ import java.util.Arrays;
  */
 public class DownloadInfo {
     /**
+     * Id
+     */
+    private String id;
+    /**
      * 文件长度
      */
     private long totalLength;
@@ -32,6 +36,13 @@ public class DownloadInfo {
      */
     private volatile DownloadSegment[] segments;
 
+    public DownloadInfo(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
 
     public long getTotalLength() {
         return totalLength;
@@ -75,7 +86,7 @@ public class DownloadInfo {
     /**
      * 下载是否完成
      */
-    boolean isAllSegmentDownloadFinish() {
+    public boolean isAllSegmentDownloadFinish() {
         for (DownloadSegment segment : segments) {
             if (segment.getState() != DownloadSegment.State.SUCCESS) {
                 return false;

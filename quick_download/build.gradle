@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 29
 
     defaultConfig {
         minSdk 21
-        targetSdk 32
+        targetSdk 29
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -26,6 +26,8 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'androidx.startup:startup-runtime:1.1.1'
+
 }
