@@ -18,6 +18,8 @@ public class DownloadParams {
     @Nullable
     private DownloadListener listener;
 
+    private boolean useMultiThread = true;
+
     @NonNull
     public String getUrl() {
         return url;
@@ -37,6 +39,14 @@ public class DownloadParams {
         this.listener = listener;
     }
 
+    public boolean isUseMultiThread() {
+        return useMultiThread;
+    }
+
+    public void setUseMultiThread(boolean useMultiThread) {
+        this.useMultiThread = useMultiThread;
+    }
+
     public DownloadParams(@NonNull String url, @NonNull File descFile) {
         this.url = url;
         this.descFile = descFile;
@@ -48,7 +58,25 @@ public class DownloadParams {
         this.listener = listener;
     }
 
+
+    public DownloadParams(@NonNull String url, @NonNull File descFile, boolean useMultiThread, @Nullable DownloadListener listener) {
+        this.url = url;
+        this.descFile = descFile;
+        this.listener = listener;
+        this.useMultiThread = useMultiThread;
+    }
+
     public String getUniqueId() {
-        return DownloadUtil.getSHA256(url + descFile.getAbsolutePath());
+        return MD5Util.getSHA256(url + descFile.getAbsolutePath());
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "DownloadParams{" +
+                "url='" + url + '\'' +
+                ", descFile=" + descFile +
+                ", useMultiThread=" + useMultiThread +
+                '}';
     }
 }

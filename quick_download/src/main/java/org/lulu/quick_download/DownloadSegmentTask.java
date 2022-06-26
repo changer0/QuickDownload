@@ -2,8 +2,6 @@ package org.lulu.quick_download;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -21,9 +19,6 @@ import okhttp3.ResponseBody;
  */
 public class DownloadSegmentTask implements Runnable {
 
-    private static final int BUFFER_SIZE = 20 * 1024;
-
-    private static final String RANGE = "Range";
     @NonNull
     private final DownloadSegment segment;
     @NonNull
@@ -56,7 +51,7 @@ public class DownloadSegmentTask implements Runnable {
             segment.setState(DownloadSegment.State.DOWNLOADING);
             Request.Builder builder = new Request.Builder()
                     .url(Objects.requireNonNull(params.getUrl()))
-                    .addHeader(RANGE, splitRangeHeader)
+                    .addHeader(DownloadConstants.HEADER_RANGE, splitRangeHeader)
                     .get();
             response = client.newCall(builder.build()).execute();
             ResponseBody body = response.body();
@@ -81,14 +76,14 @@ public class DownloadSegmentTask implements Runnable {
     }
 
     private void writeSegmentToFile(DownloadSegment segment, InputStream in) throws IOException {
-        RandomAccessFile raFile = prepareDownloadFile(segment.getStartPos());
+        RandomAccessFile raFile = DownloadUtil.prepareDownloadFile(params.getDescFile(), segment.getStartPos());
         if (raFile == null) {
             throw new IOException("Create RandomAccessFile Failure");
         }
-        byte[] buffer = new byte[BUFFER_SIZE];
+        byte[] buffer = new byte[DownloadConstants.BUFFER_SIZE];
         long segmentLen = 0;
         int len;
-        while ((len = in.read(buffer, 0, BUFFER_SIZE)) > 0) {
+        while ((len = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
             segmentLen += len;
             raFile.write(buffer, 0, len);
             int progress = (int) (segmentLen * 100.0F / segment.getLength()) + 1;
@@ -105,35 +100,6 @@ public class DownloadSegmentTask implements Runnable {
         notifySuccess();
     }
 
-
-
-    /**
-     * 准备下载文件
-     */
-    @Nullable
-    private synchronized RandomAccessFile prepareDownloadFile(long pos) {
-        boolean createOK = true;
-        RandomAccessFile raFile = null;
-        try {
-            File saveFile = params.getDescFile();
-            File dirFile = saveFile.getParentFile();
-            if (dirFile != null && !dirFile.exists()) {
-                createOK = dirFile.mkdirs();
-            }
-            if (!saveFile.exists()) {
-                createOK = saveFile.createNewFile();
-            }
-            if (createOK) {
-                raFile = new RandomAccessFile(saveFile, "rwd");
-                raFile.seek(pos);
-                //raFile.setLength(downloadInfo.totalLength);
-            }
-        } catch (Exception e) {
-            raFile = null;
-            e.printStackTrace();
-        }
-        return raFile;
-    }
 
     private void notifySuccess() {
         if (listener == null) {

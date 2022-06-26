@@ -1,5 +1,7 @@
 package org.lulu.quick_download;
 
+import androidx.annotation.NonNull;
+
 import java.util.Arrays;
 
 /**
@@ -15,12 +17,17 @@ public class DownloadInfo {
     /**
      * 是否支持断点续传
      */
-    private boolean isSupportSplit;
+    private boolean supportBreakPointTrans;
 
     /**
      * 下载块
      */
     private volatile DownloadSegment[] segments;
+
+    /**
+     * 当前总进度
+     */
+    private int progress;
 
     public long getTotalLength() {
         return totalLength;
@@ -30,12 +37,12 @@ public class DownloadInfo {
         this.totalLength = totalLength;
     }
 
-    public boolean isSupportSplit() {
-        return isSupportSplit;
+    public boolean isSupportBreakPointTrans() {
+        return supportBreakPointTrans;
     }
 
-    public void setSupportSplit(boolean supportSplit) {
-        isSupportSplit = supportSplit;
+    public void setSupportBreakPointTrans(boolean supportBreakPointTrans) {
+        this.supportBreakPointTrans = supportBreakPointTrans;
     }
 
     public DownloadSegment[] getSegments() {
@@ -53,10 +60,18 @@ public class DownloadInfo {
         return segments != null && segments.length > 0;
     }
 
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
+
     /**
      * 下载是否完成
      */
-    boolean isDownloadFinish() {
+    boolean isAllSegmentDownloadFinish() {
         for (DownloadSegment segment : segments) {
             if (segment.getState() != DownloadSegment.State.SUCCESS) {
                 return false;
@@ -65,11 +80,12 @@ public class DownloadInfo {
         return true;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "DownloadInfo{" +
                 "totalLength=" + totalLength +
-                ", isSupportSplit=" + isSupportSplit +
+                ", supportBreakPointTrans=" + supportBreakPointTrans +
                 ", segments=" + Arrays.toString(segments) +
                 '}';
     }

@@ -50,6 +50,13 @@ public class QuickDownload {
         addTask(new DownloadParams(url, desFile, listener));
     }
 
+    /**
+     * 添加下载任务
+     */
+    public void addTask(String url, File desFile, boolean useMultiThread, DownloadListener listener) {
+        addTask(new DownloadParams(url, desFile, useMultiThread, listener));
+    }
+
     public void addTask(DownloadParams downloadParams) {
         String uniqueId = downloadParams.getUniqueId();
         DownloadTaskDispatcher downloadTaskDispatcher = taskDispatcherMap.get(uniqueId);

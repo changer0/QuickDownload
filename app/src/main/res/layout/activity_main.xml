@@ -8,8 +8,13 @@
     android:padding="10dp"
     tools:context=".MainActivity">
     <Button
-        android:text="测试下载"
-        android:onClick="testDownload"
+        android:text="多线程下载"
+        android:onClick="multiThreadDownload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <Button
+        android:text="单线程下载"
+        android:onClick="singleThreadDownload"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
     <Button

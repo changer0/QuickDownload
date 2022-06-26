@@ -10,10 +10,11 @@ import androidx.annotation.NonNull;
 import java.io.File;
 
 /**
+ * 多线程进度管理
  * author: changer0
  * date: 2022/6/25
  */
-public class ProgressHandler extends Handler {
+public class MultiThreadProgressHandler extends Handler {
     /**
      * 下载参数
      */
@@ -24,7 +25,7 @@ public class ProgressHandler extends Handler {
      */
     private final DownloadInfo downloadInfo;
 
-    public ProgressHandler(Looper looper, DownloadParams downloadParams, DownloadInfo downloadInfo) {
+    public MultiThreadProgressHandler(Looper looper, DownloadParams downloadParams, DownloadInfo downloadInfo) {
         super(looper);
         this.downloadParams = downloadParams;
         this.downloadInfo = downloadInfo;
@@ -42,7 +43,7 @@ public class ProgressHandler extends Handler {
         DownloadSegment[] segments = downloadInfo.getSegments();
         for (DownloadSegment segment : segments) {
             if (segment.getState() == DownloadSegment.State.FAILURE) {
-                LogUtil.i("downloading progress : failure looper quit");
+                LogUtil.i("MultiThreadProgressHandler | downloading progress : failure looper quit");
                 getLooper().quit();
                 return;
             }
@@ -54,10 +55,10 @@ public class ProgressHandler extends Handler {
         }
 
         int allProgress = tempProgress / segments.length;
-
+        downloadInfo.setProgress(allProgress);
         if (allProgress >= 100) {
             //see forceFinish
-            LogUtil.i("downloading progress : finish");
+            LogUtil.i("MultiThreadProgressHandler | downloading progress : finish");
             getLooper().quit();
             return;
         }
@@ -65,21 +66,8 @@ public class ProgressHandler extends Handler {
         if (listener != null) {
             listener.onProgress(allProgress);
         }
-        LogUtil.i("downloading allProgress : " + allProgress + " tempProgress: " + tempProgress);
+        LogUtil.i("MultiThreadProgressHandler | downloading allProgress : " + allProgress + " tempProgress: " + tempProgress);
         sendEmptyMessageDelayed(0, 300);
     }
 
-    /**
-     * 通知强制完成
-     */
-    public void forceFinish() {
-        DownloadListener listener = downloadParams.getListener();
-        if (listener != null) {
-            listener.onProgress(100);
-        }
-    }
-
-    public void terminate() {
-        removeCallbacksAndMessages(null);
-    }
 }

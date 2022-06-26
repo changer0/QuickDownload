@@ -24,6 +24,8 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
+
     private final String downloadUrl = "https://ucan.25pp.com/Wandoujia_web_seo_baidu_homepage.apk";
     private File descFile;
     private ProgressBar progressBar;
@@ -53,37 +55,45 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void testDownload(View view) {
+    public void multiThreadDownload(View view) {
         //Toast.makeText(this, "当前 CPU 个数:" + Runtime.getRuntime().availableProcessors(), Toast.LENGTH_SHORT).show();
         Toast.makeText(this, "开始下载, 线程数: " + QuickDownload.getInstance().getConfig().getThreadCount(), Toast.LENGTH_SHORT).show();
+        doDownload(true);
+    }
+
+    public void singleThreadDownload(View view) {
+        doDownload(false);
+    }
+
+    private void doDownload(boolean useMultiThread) {
         long startTime = System.currentTimeMillis();
-        QuickDownload.getInstance().addTask(downloadUrl, descFile, new DownloadListener() {
+        QuickDownload.getInstance().addTask(downloadUrl, descFile, useMultiThread, new DownloadListener() {
             @Override
             public void onReady(DownloadParams params, DownloadInfo info) {
-                LogUtil.i("MainActivity | onReady " + info);
+                Log.i(TAG, "MainActivity | onReady " + info);
             }
 
             @Override
             public void onSegmentDownloadFinish(DownloadSegment segment) {
-                LogUtil.i("MainActivity | onSegmentDownloadFinish " + segment);
+                Log.i(TAG,"MainActivity | onSegmentDownloadFinish " + segment);
             }
 
             @Override
             public void onDownloadSuccess() {
                 String time = (System.currentTimeMillis() - startTime) / 1000 + "s";
-                LogUtil.i("MainActivity | onDownloadSuccess " + time);
+                Log.i(TAG,"MainActivity | onDownloadSuccess " + time);
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载完成: " + time, Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onDownloadFailure(Throwable e) {
-                LogUtil.i("MainActivity | onFailure " + Log.getStackTraceString(e));
+                Log.i(TAG,"MainActivity | onFailure " + Log.getStackTraceString(e));
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载失败", Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onProgress(int progress) {
-                LogUtil.i("MainActivity | onProgress " + progress);
+                Log.i(TAG,"MainActivity | onProgress " + progress);
                 runOnUiThread(() -> {
                     progressBar.setProgress(progress);
                 });
