@@ -25,9 +25,12 @@ public class DownloadSegmentTask implements Runnable {
     private final DownloadParams params;
     @NonNull
     private final OkHttpClient client;
-
     @Nullable
     private DownloadSegmentListener listener;
+    /**
+     * 开关
+     */
+    private volatile boolean on = true;
 
     public DownloadSegmentTask(@NonNull DownloadParams downloadParams, @NonNull DownloadSegment segment) {
         this.segment = segment;
@@ -57,14 +60,14 @@ public class DownloadSegmentTask implements Runnable {
             ResponseBody body = response.body();
             if (body == null) {
                 segment.setState(DownloadSegment.State.FAILURE);
-                notifyFailure(new Exception("DownloadSegmentTask body == null"));
+                notifyFailure(DownloadConstants.ERROR_CODE_UNKNOWN, new Exception("DownloadSegmentTask body == null"));
                 return;
             }
             InputStream in = body.byteStream();
             writeSegmentToFile(segment, in);
         } catch (IOException e) {
             segment.setState(DownloadSegment.State.FAILURE);
-            notifyFailure(e);
+            notifyFailure(DownloadConstants.ERROR_CODE_UNKNOWN, e);
             e.printStackTrace();
         } finally {
             DownloadUtil.close(response);
@@ -72,7 +75,9 @@ public class DownloadSegmentTask implements Runnable {
     }
 
     private String generateSplitRangeHeader(DownloadSegment segment) {
-        return "bytes=" + segment.getStartPos() + "-" + segment.getEndPos();
+        //起始位置 + 已经下载的进度!
+        long start = segment.getStartPos() + segment.getDownloadLength();
+        return "bytes=" + start + "-" + segment.getEndPos();
     }
 
     private void writeSegmentToFile(DownloadSegment segment, InputStream in) throws IOException {
@@ -83,18 +88,28 @@ public class DownloadSegmentTask implements Runnable {
         byte[] buffer = new byte[DownloadConstants.BUFFER_SIZE];
         long segmentLen = 0;
         int len;
-        while ((len = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
-            segmentLen += len;
-            raFile.write(buffer, 0, len);
-            segment.setDownloadLength(segmentLen);
+        try {
+            while ((len = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
+                if (!on) {
+                    notifyFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("segment " + segment.getIndex() + " cancel!"));
+                    return;
+                }
+                segmentLen += len;
+                raFile.write(buffer, 0, len);
+                segment.setDownloadLength(segmentLen);
+            }
+            LogUtil.i("writing segment: " + segment.getIndex() + " length" + segment.getLength() + " startPos:" + segment
+                    .getStartPos());
+            segment.setState(DownloadSegment.State.SUCCESS);
+            notifySuccess();
+        } finally {
+            DownloadUtil.close(raFile);
         }
-        DownloadUtil.close(raFile);
-        LogUtil.i("writing segment: " + segment.getIndex() + " length" + segment.getLength() + " startPos:" + segment
-                .getStartPos());
-        segment.setState(DownloadSegment.State.SUCCESS);
-        notifySuccess();
     }
 
+    public void cancel() {
+        on = false;
+    }
 
     private void notifySuccess() {
         if (listener == null) {
@@ -104,11 +119,11 @@ public class DownloadSegmentTask implements Runnable {
     }
 
 
-    private void notifyFailure(Throwable e) {
+    private void notifyFailure(int errorCode, Throwable e) {
         if (listener == null) {
             return;
         }
-        listener.onFailure(segment, e);
+        listener.onFailure(segment, errorCode, e);
     }
 
     public void setListener(@Nullable DownloadSegmentListener listener) {
@@ -117,6 +132,6 @@ public class DownloadSegmentTask implements Runnable {
 
     public interface DownloadSegmentListener {
         void onSuccess(DownloadSegment segment);
-        void onFailure(DownloadSegment segment, Throwable e);
+        void onFailure(DownloadSegment segment, int errorCode, Throwable e);
     }
 }

@@ -53,22 +53,40 @@ public class QuickDownload {
     /**
      * 添加下载任务
      */
-    public void addTask(String url, File desFile, boolean useMultiThread, DownloadListener listener) {
-        addTask(new DownloadParams(url, desFile, useMultiThread, listener));
+    public String addTask(String url, File desFile, boolean useMultiThread, DownloadListener listener) {
+        return addTask(new DownloadParams(url, desFile, useMultiThread, listener));
     }
 
-    public void addTask(DownloadParams downloadParams) {
+    public String addTask(DownloadParams downloadParams) {
         String uniqueId = downloadParams.getUniqueId();
         DownloadTaskDispatcher downloadTaskDispatcher = taskDispatcherMap.get(uniqueId);
         //避免重复添加任务
         if (downloadTaskDispatcher != null && downloadTaskDispatcher.isRunning()) {
-            return;
+            return uniqueId;
         }
         DownloadTaskDispatcher taskDispatcher = new DownloadTaskDispatcher(
                 downloadParams
         );
         getConfig().getExecutor().execute(taskDispatcher);
         taskDispatcherMap.put(uniqueId, taskDispatcher);
+        return uniqueId;
     }
 
+    public boolean pauseTask(String url, File desFile) {
+        return pauseTaskById(new DownloadParams(url, desFile).getUniqueId());
+    }
+
+    public boolean pauseTaskById(String id) {
+        DownloadTaskDispatcher downloadTaskDispatcher = taskDispatcherMap.get(id);
+        if (downloadTaskDispatcher == null) {
+            return false;
+        }
+        downloadTaskDispatcher.cancel();
+        removeTask(id);
+        return true;
+    }
+
+    public void removeTask(String id) {
+        taskDispatcherMap.remove(id);
+    }
 }

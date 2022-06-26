@@ -17,7 +17,6 @@ import org.lulu.quick_download.DownloadInfo;
 import org.lulu.quick_download.DownloadListener;
 import org.lulu.quick_download.DownloadParams;
 import org.lulu.quick_download.DownloadSegment;
-import org.lulu.quick_download.LogUtil;
 import org.lulu.quick_download.QuickDownload;
 
 import java.io.File;
@@ -30,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private File descFile;
     private ProgressBar progressBar;
     private SeekBar seekBar;
+    private String downloadId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void doDownload(boolean useMultiThread) {
         long startTime = System.currentTimeMillis();
-        QuickDownload.getInstance().addTask(downloadUrl, descFile, useMultiThread, new DownloadListener() {
+        downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, useMultiThread, new DownloadListener() {
             @Override
             public void onReady(DownloadParams params, DownloadInfo info) {
                 Log.i(TAG, "MainActivity | onReady " + info);
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onDownloadFailure(Throwable e) {
+            public void onDownloadFailure(int error, Throwable e) {
                 Log.i(TAG,"MainActivity | onFailure " + Log.getStackTraceString(e));
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载失败", Toast.LENGTH_SHORT).show());
             }
@@ -116,5 +116,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void removeFile(View view) {
         Toast.makeText(this, "删除完成:" + descFile.delete(), Toast.LENGTH_SHORT).show();
+    }
+
+    public void pauseDownload(View view) {
+        Toast.makeText(this, "暂停: " + QuickDownload.getInstance().pauseTaskById(downloadId), Toast.LENGTH_SHORT).show();
     }
 }

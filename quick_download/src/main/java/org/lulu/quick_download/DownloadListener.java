@@ -31,7 +31,7 @@ public interface DownloadListener {
     /**
      * 下载失败
      */
-    void onDownloadFailure(Throwable e);
+    void onDownloadFailure(int errorCode, Throwable e);
 
     /**
      * 下载进度

@@ -28,6 +28,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <Button
+        android:text="暂停"
+        android:onClick="pauseDownload"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <SeekBar
         android:id="@+id/thread_count"
         android:layout_marginTop="10dp"
