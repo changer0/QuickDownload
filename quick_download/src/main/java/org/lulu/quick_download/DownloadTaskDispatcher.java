@@ -140,15 +140,26 @@ public class DownloadTaskDispatcher implements Runnable{
         if (fileInfo == null) {
             LogUtil.i("no download record !");
             if (descFile.exists()) {
-                LogUtil.i("delete file: " + descFile.delete());
+                LogUtil.i("fileInfo == null delete file: " + descFile.delete());
             }
             int count = DownloadDBHandle.getInstance().deleteDownloadSegment(downloadParams.getUniqueId());
             LogUtil.i("delete saved segment: " + count);
-        } else {
-            if (!descFile.exists()) {
-                int count = DownloadDBHandle.getInstance().deleteDownloadSegment(downloadParams.getUniqueId());
-                LogUtil.e("file no exists ! delete saved segment: " + count);
-            }
+            return;
+        }
+        if (!descFile.exists()) {
+            int count = DownloadDBHandle.getInstance().deleteDownloadSegment(downloadParams.getUniqueId());
+            LogUtil.e("file no exists ! delete saved segment: " + count);
+            return;
+        }
+        //如果 DB 中存在, 文件也存在, 需要比对下载长度是否一致
+        //需要清除该下载下所有脏数据!
+        if (fileInfo.getLength() != downloadInfo.getTotalLength()) {
+            LogUtil.i("saved length != current length ");
+            LogUtil.i("delete file: " + descFile.delete());
+            int fileInfoCount = DownloadDBHandle.getInstance().deleteFileInfo(downloadParams.getUniqueId());
+            LogUtil.i("delete saved file info: " + fileInfoCount);
+            int segmentCount = DownloadDBHandle.getInstance().deleteDownloadSegment(downloadParams.getUniqueId());
+            LogUtil.i("delete saved segment: " + segmentCount);
         }
     }
 

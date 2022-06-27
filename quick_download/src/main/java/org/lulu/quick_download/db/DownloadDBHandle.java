@@ -99,6 +99,25 @@ public class DownloadDBHandle {
         return null;
     }
 
+    public synchronized int deleteFileInfo(String id) {
+        int ret = 0;
+        SQLiteDatabase db = null;
+        try {
+            db = dbHelper.getWritableDatabase();
+            db.beginTransaction();
+            ret = db.delete(TABLE_FILE_INFO, ID + " = ? ", new String[]{id});
+            db.setTransactionSuccessful();
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            if (db != null) {
+                db.endTransaction();
+            }
+            DownloadUtil.close(db);
+            dbHelper.close();
+        }
+        return ret;
+    }
 
     /**
      * 插入一条 DownloadInfo
