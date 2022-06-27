@@ -4,33 +4,35 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
-import androidx.lifecycle.MutableLiveData;
 
 /**
  * author: changer0
  * date: 2022/6/27
  */
-public class OutPanelController {
+public class OutPanelController implements View.OnTouchListener {
 
     private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private TextView tvOutPanel;
     private ScrollView scrollView;
     SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder();
+    private boolean canScroll = true;
+    private final Runnable canScrollDelayRunnable = () -> canScroll = true;
+    ;
 
 
     public OutPanelController(ScrollView scrollView, TextView tvOutPanel) {
         this.tvOutPanel = tvOutPanel;
         this.scrollView = scrollView;
+        scrollView.setOnTouchListener(this);
     }
 
     public void printlnE(CharSequence msg) {
@@ -50,15 +52,12 @@ public class OutPanelController {
         }
         spannableStringBuilder.append(msg);
         spannableStringBuilder.append("\n————————————————————————————\n");
-
-//        CharSequence oldStr = tvOutPanel.getText();
-//        if (TextUtils.isEmpty(oldStr)) {
-//            tvOutPanel.setText(msg);
-//        } else {
-//            tvOutPanel.setText(oldStr + "\n" + msg);
-//        }
         tvOutPanel.setText(spannableStringBuilder);
-        mainHandler.postDelayed(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN), 200);
+        mainHandler.postDelayed(() -> {
+            if (canScroll) {
+                scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+            }
+        }, 200);
 
     }
 
@@ -69,5 +68,21 @@ public class OutPanelController {
 
     public static boolean isMainThread() {
         return Looper.myLooper() == Looper.getMainLooper();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mainHandler.removeCallbacks(canScrollDelayRunnable);
+                canScroll = false;
+                break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                mainHandler.removeCallbacks(canScrollDelayRunnable);
+                mainHandler.postDelayed(canScrollDelayRunnable, 2000);
+
+        }
+        return false;
     }
 }
