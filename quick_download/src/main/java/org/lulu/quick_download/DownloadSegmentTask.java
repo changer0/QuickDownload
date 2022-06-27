@@ -46,7 +46,7 @@ public class DownloadSegmentTask implements Runnable {
     public void run() {
         if (segment.getState() == DownloadSegment.State.DOWNLOADING
                 || segment.getState() == DownloadSegment.State.SUCCESS) {
-            LogUtil.i("downloading or succeed!");
+            LogUtil.i("segment " + segment.getIndex() + " " + "is downloading or succeed!");
             return;
         }
         LogUtil.i("download segment index=" + segment.getIndex() + " startPos=" + segment.getStartPos());

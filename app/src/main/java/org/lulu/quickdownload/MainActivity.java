@@ -109,10 +109,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void multiThreadDownload(View view) {
-        doDownload();
-    }
-
     private void doDownload() {
         long startTime = System.currentTimeMillis();
         downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, new DownloadListener() {

@@ -70,4 +70,14 @@ public class SegmentInfo {
                 downloadSegment.getState() == DownloadSegment.State.SUCCESS ? 1 : 0
         );
     }
+
+    @Override
+    public String toString() {
+        return "SegmentInfo{" +
+                "downloadId='" + downloadId + '\'' +
+                ", downloadPos=" + downloadPos +
+                ", index=" + index +
+                ", finished=" + finished +
+                '}';
+    }
 }
