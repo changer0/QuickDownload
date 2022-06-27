@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.style.ForegroundColorSpan;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,13 +27,24 @@ public class OutPanelController implements View.OnTouchListener {
     SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder();
     private boolean canScroll = true;
     private final Runnable canScrollDelayRunnable = () -> canScroll = true;
-    ;
-
+    private String divider = "————————————————————————————————————————————————————————";
 
     public OutPanelController(ScrollView scrollView, TextView tvOutPanel) {
         this.tvOutPanel = tvOutPanel;
         this.scrollView = scrollView;
         scrollView.setOnTouchListener(this);
+
+        TextPaint paint = tvOutPanel.getPaint();
+
+        int width = Util.getScreenWidth() - Util.dp2px(40);
+
+        while (true) {
+            float tw = paint.measureText(divider);
+            if (tw < width) {
+               break;
+            }
+            divider = divider.substring(0, divider.length() - 1);
+        }
     }
 
     public void printlnE(CharSequence msg) {
@@ -51,7 +63,7 @@ public class OutPanelController implements View.OnTouchListener {
             return;
         }
         spannableStringBuilder.append(msg);
-        spannableStringBuilder.append("\n————————————————————————————\n");
+        spannableStringBuilder.append("\n").append(divider).append("\n");
         tvOutPanel.setText(spannableStringBuilder);
         mainHandler.postDelayed(() -> {
             if (canScroll) {
