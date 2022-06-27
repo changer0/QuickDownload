@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.NonNull;
 
-import org.lulu.quick_download.DownloadSegment;
 import org.lulu.quick_download.DownloadUtil;
 import org.lulu.quick_download.QuickDownloadInitializer;
 
@@ -104,17 +103,17 @@ public class DownloadDBHandle {
     /**
      * 插入一条 DownloadInfo
      */
-    public synchronized void saveDownloadSegment(DownloadSegment segment) {
+    public synchronized void saveSegmentInfo(SegmentInfo segment) {
         SQLiteDatabase db = null;
         try {
             db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             ContentValues initialValues = new ContentValues();
-            initialValues.put(ID, segment.getSegmentId());
+            initialValues.put(ID, segment.getId());
             initialValues.put(DOWNLOAD_ID, segment.getDownloadId());
-            initialValues.put(DOWNLOAD_POS, segment.getDownloadLength());
+            initialValues.put(DOWNLOAD_POS, segment.getDownloadPos());
             initialValues.put(INDEX, segment.getIndex());
-            initialValues.put(STATE, segment.getState());
+            initialValues.put(STATE, segment.getFinished());
             db.replace(TABLE_SEGMENT_INFO, null, initialValues);
             db.setTransactionSuccessful();
         } catch (Exception e){
@@ -129,24 +128,23 @@ public class DownloadDBHandle {
     }
 
     @NonNull
-    public synchronized List<DownloadSegment> getDownloadSegment(String downloadId) {
+    public synchronized List<SegmentInfo> getSegmentInfo(String downloadId) {
         SQLiteDatabase db = null;
         Cursor cursor = null;
-        List<DownloadSegment> list = new ArrayList<>();
+        List<SegmentInfo> list = new ArrayList<>();
         try {
             db = dbHelper.getWritableDatabase();
             cursor = db.query(TABLE_SEGMENT_INFO, null, " " + DOWNLOAD_ID  + " = ? ", new String[]{downloadId}, null, null, null);
 
             while (cursor.moveToNext()) {
-                DownloadSegment segment = new DownloadSegment(
+                list.add(new SegmentInfo(
+                        cursor.getString(cursor.getColumnIndex(ID)),
                         cursor.getString(cursor.getColumnIndex(DOWNLOAD_ID)),
-                        cursor.getInt(cursor.getColumnIndex(INDEX))
-                );
-                segment.setDownloadLength(cursor.getLong(cursor.getColumnIndex(DOWNLOAD_POS)));
-                segment.setState(cursor.getInt(cursor.getColumnIndex(STATE)));
-                list.add(segment);
+                        cursor.getLong(cursor.getColumnIndex(DOWNLOAD_POS)),
+                        cursor.getInt(cursor.getColumnIndex(INDEX)),
+                        cursor.getInt(cursor.getColumnIndex(STATE))
+                ));
             }
-            return list;
         } catch (Exception e){
             e.printStackTrace();
         } finally {
@@ -154,7 +152,7 @@ public class DownloadDBHandle {
             DownloadUtil.close(db);
             dbHelper.close();
         }
-        return null;
+        return list;
     }
 
     public synchronized int deleteDownloadSegment(String downloadId) {

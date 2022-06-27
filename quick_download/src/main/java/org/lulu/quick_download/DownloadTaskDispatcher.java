@@ -2,14 +2,13 @@ package org.lulu.quick_download;
 
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.text.TextUtils;
 
 import org.lulu.quick_download.db.DownloadDBHandle;
 import org.lulu.quick_download.db.FileInfo;
+import org.lulu.quick_download.db.SegmentInfo;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -143,6 +142,8 @@ public class DownloadTaskDispatcher implements Runnable{
             if (descFile.exists()) {
                 LogUtil.i("delete file: " + descFile.delete());
             }
+            int count = DownloadDBHandle.getInstance().deleteDownloadSegment(downloadParams.getUniqueId());
+            LogUtil.i("delete saved segment: " + count);
         } else {
             if (!descFile.exists()) {
                 int count = DownloadDBHandle.getInstance().deleteDownloadSegment(downloadParams.getUniqueId());
@@ -169,24 +170,25 @@ public class DownloadTaskDispatcher implements Runnable{
         //每个分块的大小
         long splitSize = len / threadCount;
 
-        List<DownloadSegment> downloadSegments = DownloadDBHandle.getInstance().getDownloadSegment(downloadParams.getUniqueId());
+        //获取所有下载块
+        List<SegmentInfo> segmentInfoList = DownloadDBHandle.getInstance().getSegmentInfo(downloadParams.getUniqueId());
 
-        LogUtil.i("saved downloadSegments: " + downloadSegments);
+        LogUtil.i("saved downloadSegments: " + segmentInfoList);
 
         //根据线程数拆分
         for (int i = 0; i < segments.length; i++) {
             DownloadSegment segment = new DownloadSegment(downloadParams.getUniqueId(), i);
 
             //读取已保存的进度
-            if (!downloadSegments.isEmpty()) {
-                for (int j = 0; j < downloadSegments.size(); j++) {
-                    DownloadSegment savedSegment = downloadSegments.get(j);
+            if (!segmentInfoList.isEmpty()) {
+                for (int j = 0; j < segmentInfoList.size(); j++) {
+                    SegmentInfo savedSegment = segmentInfoList.get(j);
                     if (savedSegment.getIndex() == i ) {
                         //只检查成功状态
-                        if (savedSegment.getState() == DownloadSegment.State.SUCCESS) {
-                            segment.setState(savedSegment.getState());
+                        if (savedSegment.getFinished() == 1) {
+                            segment.setState(DownloadSegment.State.SUCCESS);
                         }
-                        segment.setDownloadLength(savedSegment.getDownloadLength());
+                        segment.setDownloadLength(savedSegment.getDownloadPos());
                     }
                 }
             }
@@ -259,8 +261,7 @@ public class DownloadTaskDispatcher implements Runnable{
 
             @Override
             public void onFailure(DownloadSegment segment, int errorCode, Throwable e) {
-                //停止
-                progressHandlerThread.quit();
+
                 // TODO: 2022/6/25 此处做重试逻辑, 避免直接失败, 失败回调限制一次
                 notifyDownloadFailure(errorCode, e);
             }
@@ -340,6 +341,8 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         multiThreadDownloadFailed = true;
 
+        //停止
+        progressHandlerThread.quit();
         saveFileInfoToDB(downloadInfo, false);
         QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
         LogUtil.e("download failed | errorCode: " + errorCode + " msg: " + e.getMessage());

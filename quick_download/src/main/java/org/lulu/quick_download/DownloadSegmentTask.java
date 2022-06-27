@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.lulu.quick_download.db.DownloadDBHandle;
+import org.lulu.quick_download.db.SegmentInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -122,7 +123,7 @@ public class DownloadSegmentTask implements Runnable {
 
     private void notifySuccess() {
         //TestStore.remove(segment.getSegmentId());
-        DownloadDBHandle.getInstance().saveDownloadSegment(segment);
+        DownloadDBHandle.getInstance().saveSegmentInfo(SegmentInfo.newSegmentInfo(segment));
         if (listener == null) {
             return;
         }
@@ -132,7 +133,7 @@ public class DownloadSegmentTask implements Runnable {
 
     private void notifyFailure(int errorCode, Throwable e) {
         //TestStore.putLength(segment.getSegmentId(), segment.getDownloadLength());
-        DownloadDBHandle.getInstance().saveDownloadSegment(segment);
+        DownloadDBHandle.getInstance().saveSegmentInfo(SegmentInfo.newSegmentInfo(segment));
         if (listener == null) {
             return;
         }
