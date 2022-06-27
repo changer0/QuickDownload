@@ -1,5 +1,6 @@
 package org.lulu.quickdownload;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -17,6 +18,7 @@ import org.lulu.quick_download.DownloadInfo;
 import org.lulu.quick_download.DownloadListener;
 import org.lulu.quick_download.DownloadParams;
 import org.lulu.quick_download.DownloadSegment;
+import org.lulu.quick_download.ILogger;
 import org.lulu.quick_download.QuickDownload;
 
 import java.io.File;
@@ -25,39 +27,89 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
+    private OutPanelController outPanelController;
+    private ButtonControllerLinerLayout bottomContainer;
+
     private final String downloadUrl = "https://ucan.25pp.com/Wandoujia_web_seo_baidu_homepage.apk";
     private File descFile;
     private ProgressBar progressBar;
-    private SeekBar seekBar;
     private String downloadId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        progressBar = findViewById(R.id.progress_bar);
-        seekBar = findViewById(R.id.thread_count);
+        setContentView(R.layout.activity_layout_sample);
         descFile = new File(getExternalCacheDir() + "/" + "test.apk");
-        progressBar.setMax(100);
-        seekBar.setMax(10);
+        outPanelController = new OutPanelController(findViewById(R.id.svOutPanel),
+                findViewById(R.id.tvOutPanel));
+
+        bottomContainer = findViewById(R.id.llControlPanel);
+
+        bottomContainer.addText("下载进度:");
+        progressBar = (ProgressBar) bottomContainer.addComponent(R.layout.progress_bar);
+        bottomContainer.addText("线程数");
+        SeekBar seekBar = (SeekBar) bottomContainer.addComponent(R.layout.thread_count_seek_bar);
+
+        QuickDownload.getInstance().setConfig(
+                QuickDownload.getInstance().getConfig().newBuilder().log(new ILogger() {
+                    @Override
+                    public void i(String msg) {
+                        Log.i(TAG, msg);
+                        outPanelController.printlnI(msg);
+                    }
+
+                    @Override
+                    public void e(String msg, @Nullable Throwable throwable) {
+                        Log.e(TAG, msg, throwable);
+                        outPanelController.printlnE(msg + " | " + (throwable != null ? throwable.getMessage() : ""));
+                    }
+                }).build()
+        );
+
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Toast.makeText(MainActivity.this, "当前线程数: " + progress, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(MainActivity.this, "当前线程数: " + progress, Toast.LENGTH_SHORT).show();
+                CharSequence msg;
+                if (progress <= 0) {
+                    msg = "默认线程数";
+                } else {
+                    msg = "当前线程数: " + progress;
+                }
+                outPanelController.printlnI(msg);
                 QuickDownload.getInstance().setConfig(
                         QuickDownload.getInstance().getConfig().newBuilder().threadCount(progress).build()
                 );
             }
+
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
+
+
+        bottomContainer.addButton("下载", v -> doDownload());
+        bottomContainer.addButton("暂停", v -> {
+            outPanelController.printlnI(downloadId + " 暂停: " + QuickDownload.getInstance().pauseTaskById(downloadId));
+        });
+        bottomContainer.addButton("删除文件", v -> {
+            outPanelController.printlnI(descFile + " 删除: " + descFile.delete());
+        });
+
+        bottomContainer.addButton("测试安装(验证文件正确性)", v -> {
+            testInstall();
+        });
+
+        bottomContainer.addButton("清除日志", v -> {
+            outPanelController.clearPanel();
         });
     }
 
     public void multiThreadDownload(View view) {
-        //Toast.makeText(this, "当前 CPU 个数:" + Runtime.getRuntime().availableProcessors(), Toast.LENGTH_SHORT).show();
-        Toast.makeText(this, "开始下载, 线程数: " + QuickDownload.getInstance().getConfig().getThreadCount(), Toast.LENGTH_SHORT).show();
         doDownload();
     }
 
@@ -95,9 +147,10 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+        outPanelController.printlnI("开始下载: " + downloadId);
     }
 
-    public void testInstall(View view) {
+    public void testInstall() {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // 7.0+以上版本
@@ -108,13 +161,5 @@ public class MainActivity extends AppCompatActivity {
             intent.setDataAndType(Uri.fromFile(descFile), "application/vnd.android.package-archive");
         }
         this.startActivity(intent);
-    }
-
-    public void removeFile(View view) {
-        Toast.makeText(this, "删除完成:" + descFile.delete(), Toast.LENGTH_SHORT).show();
-    }
-
-    public void pauseDownload(View view) {
-        Toast.makeText(this, "暂停: " + QuickDownload.getInstance().pauseTaskById(downloadId), Toast.LENGTH_SHORT).show();
     }
 }
