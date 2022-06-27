@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.lulu.quick_download.DownloadInfo;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         bottomContainer.addText("下载进度:");
         progressBar = (ProgressBar) bottomContainer.addComponent(R.layout.progress_bar);
-        bottomContainer.addText("线程数");
+        TextView tvThreadCount = bottomContainer.addText("线程数: " + QuickDownload.getInstance().getConfig().getThreadCount());
         SeekBar seekBar = (SeekBar) bottomContainer.addComponent(R.layout.thread_count_seek_bar);
 
         QuickDownload.getInstance().setConfig(
@@ -70,16 +71,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //Toast.makeText(MainActivity.this, "当前线程数: " + progress, Toast.LENGTH_SHORT).show();
-                CharSequence msg;
-                if (progress <= 0) {
-                    msg = "默认线程数";
-                } else {
-                    msg = "当前线程数: " + progress;
-                }
-                outPanelController.printlnI(msg);
                 QuickDownload.getInstance().setConfig(
                         QuickDownload.getInstance().getConfig().newBuilder().threadCount(progress).build()
                 );
+                int threadCount = QuickDownload.getInstance().getConfig().getThreadCount();
+                CharSequence msg = "当前线程数: " + threadCount;
+                tvThreadCount.setText("线程数: " + threadCount);
+                outPanelController.printlnI(msg);
             }
 
             @Override
@@ -114,24 +112,24 @@ public class MainActivity extends AppCompatActivity {
         downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, new DownloadListener() {
             @Override
             public void onReady(DownloadParams params, DownloadInfo info) {
-                Log.i(TAG, "MainActivity | onReady " + info);
+                outPanelController.printlnI("MainActivity | onReady " + info);
             }
 
             @Override
             public void onSegmentDownloadFinish(DownloadSegment segment) {
-                Log.i(TAG,"MainActivity | onSegmentDownloadFinish " + segment);
+                outPanelController.printlnI("MainActivity | onSegmentDownloadFinish " + segment);
             }
 
             @Override
             public void onDownloadSuccess() {
                 String time = (System.currentTimeMillis() - startTime) / 1000 + "s";
-                Log.i(TAG,"MainActivity | onDownloadSuccess " + time + " size: " + descFile.length());
+                outPanelController.printlnI("MainActivity | onDownloadSuccess " + time + " size: " + descFile.length());
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载完成: " + time + " size: " + descFile.length(), Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onDownloadFailure(int error, Throwable e) {
-                Log.i(TAG,"MainActivity | onFailure " + Log.getStackTraceString(e));
+                outPanelController.printlnE("MainActivity | onFailure " + Log.getStackTraceString(e));
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载失败", Toast.LENGTH_SHORT).show());
             }
 

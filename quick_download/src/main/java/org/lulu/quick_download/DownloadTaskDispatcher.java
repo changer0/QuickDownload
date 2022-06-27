@@ -115,9 +115,11 @@ public class DownloadTaskDispatcher implements Runnable{
             return;
         }
         if (downloadInfo.isSupportBreakPointTrans()) {
-            checkFileInfo();
+            //检查本地Info
+            checkLocalFileInfo();
             //先分片
             splitSegments();
+            //通知 Ready
             notifyReady();
             //再下载
             if (downloadInfo.isSegmentsEnable()) {
@@ -132,7 +134,10 @@ public class DownloadTaskDispatcher implements Runnable{
         DownloadUtil.close(response);
     }
 
-    private void checkFileInfo(){
+    /**
+     * 检查本地文件信息
+     */
+    private void checkLocalFileInfo(){
         FileInfo fileInfo = DownloadDBHandle.getInstance().getFileInfo(downloadParams.getUniqueId());
         File descFile = downloadParams.getDescFile();
 
@@ -151,10 +156,16 @@ public class DownloadTaskDispatcher implements Runnable{
             LogUtil.e("file no exists ! delete saved segment: " + count);
             return;
         }
-        //如果 DB 中存在, 文件也存在, 需要比对下载长度是否一致
-        //需要清除该下载下所有脏数据!
-        if (fileInfo.getLength() != downloadInfo.getTotalLength()) {
-            LogUtil.i("saved length != current length ");
+        //如果 DB 中存在, 文件也存在
+        //看需要清除该下载下所有脏数据!
+        List<SegmentInfo> segmentInfoList = DownloadDBHandle.getInstance().getSegmentInfo(downloadParams.getUniqueId());
+        boolean removeDBInfo =
+                //文件长度是否一致
+                fileInfo.getLength() != downloadInfo.getTotalLength()
+                        // 分片个数是否与线程个数一致
+                        || segmentInfoList.size() != config.getThreadCount();
+        if (removeDBInfo) {
+            LogUtil.i("need clear local dirty data! ");
             LogUtil.i("delete file: " + descFile.delete());
             int fileInfoCount = DownloadDBHandle.getInstance().deleteFileInfo(downloadParams.getUniqueId());
             LogUtil.i("delete saved file info: " + fileInfoCount);
@@ -180,7 +191,6 @@ public class DownloadTaskDispatcher implements Runnable{
         downloadInfo.setSegments(segments);
         //每个分块的大小
         long splitSize = len / threadCount;
-
         //获取所有下载块
         List<SegmentInfo> segmentInfoList = DownloadDBHandle.getInstance().getSegmentInfo(downloadParams.getUniqueId());
 
