@@ -123,8 +123,6 @@ public class DownloadSegmentTask implements Runnable {
     }
 
     private void notifySuccess() {
-        //TestStore.remove(segment.getSegmentId());
-        DownloadDBHandle.getInstance().saveSegmentInfo(SegmentInfo.newSegmentInfo(segment));
         if (listener == null) {
             return;
         }
@@ -133,8 +131,6 @@ public class DownloadSegmentTask implements Runnable {
 
 
     private void notifyFailure(int errorCode, Throwable e) {
-        //TestStore.putLength(segment.getSegmentId(), segment.getDownloadLength());
-        DownloadDBHandle.getInstance().saveSegmentInfo(SegmentInfo.newSegmentInfo(segment));
         if (listener == null) {
             return;
         }

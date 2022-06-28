@@ -141,14 +141,16 @@ public class DownloadSegment {
         return endPos - startPos + 1;
     }
 
-
     @NonNull
     @Override
     public String toString() {
-        return "DownloadSegment{"
-                + "state=" + state
-                + ", index=" + index
-                + ", startPos=" + startPos
-                + ", length=" + getLength() + '}';
+        return "DownloadSegment{" +
+                "state=" + state +
+                ", index=" + index +
+                ", startPos=" + startPos +
+                ", endPos=" + endPos +
+                ", downloadLength=" + downloadLength +
+                ", retryCount=" + retryCount +
+                '}';
     }
 }

@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import org.lulu.quick_download.log.ILogger;
+import org.lulu.quick_download.retry.DefaultRetryStrategy;
+import org.lulu.quick_download.retry.IRetryStrategy;
 
 import java.util.Collections;
 import java.util.concurrent.Executor;
@@ -27,6 +29,8 @@ public class DefaultDownloadConfig {
     private static Executor sExecutorService;
 
     private static OkHttpClient sOkHttpClient;
+
+    private static IRetryStrategy sRetryStrategy;
 
     private static ILogger sLogger;
 
@@ -85,5 +89,12 @@ public class DefaultDownloadConfig {
             };
         }
         return sLogger;
+    }
+
+    public static IRetryStrategy retryStrategy() {
+        if (sRetryStrategy == null) {
+            sRetryStrategy = new DefaultRetryStrategy();
+        }
+        return sRetryStrategy;
     }
 }

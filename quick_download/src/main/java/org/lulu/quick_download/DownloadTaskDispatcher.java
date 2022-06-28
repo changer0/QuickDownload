@@ -246,7 +246,7 @@ public class DownloadTaskDispatcher implements Runnable{
             DownloadUtil.directDownload(body, downloadParams, downloadInfo);
             notifyDownloadSuccess();
         } catch (IOException e) {
-            progressHandlerThread.quit();
+            quitProgress();
             notifyDownloadFailure(DownloadConstants.ERROR_CODE_UNKNOWN, e);
             e.printStackTrace();
         }
@@ -265,7 +265,7 @@ public class DownloadTaskDispatcher implements Runnable{
         startMultiThreadProgressLooper();
     }
 
-    private void startSegmentDownload(DownloadSegment segment) {
+    public void startSegmentDownload(DownloadSegment segment) {
         if (segment == null) {
             return;
         }
@@ -301,6 +301,10 @@ public class DownloadTaskDispatcher implements Runnable{
         progressHandler.sendEmptyMessage(0);
     }
 
+    private void quitProgress() {
+        progressHandlerThread.quit();
+    }
+
     /**
      * 通知强制完成
      */
@@ -320,6 +324,8 @@ public class DownloadTaskDispatcher implements Runnable{
      */
     public void cancel() {
         if (downloadSegmentTasks.isEmpty()) {
+            quitProgress();
+            notifyDownloadFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("cancel"));
             return;
         }
         for (DownloadSegmentTask downloadSegmentTask : downloadSegmentTasks) {
@@ -331,6 +337,9 @@ public class DownloadTaskDispatcher implements Runnable{
      * 通知每一块下载成功
      */
     private void notifySegmentDownloadSuccess(DownloadSegment segment) {
+        //重置重试次数!
+        segment.setRetryCount(0);
+        DownloadDBHandle.getInstance().saveSegmentInfo(SegmentInfo.newSegmentInfo(segment));
         DownloadListener listener = downloadParams.getListener();
         if (listener != null) {
             listener.onSegmentDownloadSuccess(segment);
@@ -344,6 +353,13 @@ public class DownloadTaskDispatcher implements Runnable{
      * 通知下载块失败!
      */
     private void notifySegmentDownloadFailure(DownloadSegment segment, int errorCode, Throwable e) {
+        //segment 下载失败后先检查重试策略
+        //如果已经处理则直接返回不去通知!
+        if (errorCode != DownloadConstants.ERROR_CODE_CANCEL
+                && config.getRetryStrategy().handle(this, segment)) {
+            return;
+        }
+        DownloadDBHandle.getInstance().saveSegmentInfo(SegmentInfo.newSegmentInfo(segment));
         DownloadListener listener = downloadParams.getListener();
         if (listener != null) {
             listener.onSegmentDownloadFailure(segment, errorCode, e);
@@ -361,15 +377,13 @@ public class DownloadTaskDispatcher implements Runnable{
             return;
         }
         multiThreadDownloadSucceed = true;
-
         checkAndSaveFileInfoToDB(downloadInfo, true);
-        QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
-        DownloadListener listener = downloadParams.getListener();
-        if (listener == null) {
-            return;
-        }
         forceRefreshProgressFinish();
-        listener.onDownloadSuccess();
+        DownloadListener listener = downloadParams.getListener();
+        if (listener != null) {
+            listener.onDownloadSuccess();
+        }
+        QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
     }
 
     /**
@@ -383,15 +397,15 @@ public class DownloadTaskDispatcher implements Runnable{
         multiThreadDownloadFailed = true;
 
         //停止
-        progressHandlerThread.quit();
+        quitProgress();
         checkAndSaveFileInfoToDB(downloadInfo, false);
-        QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
         LogUtil.e("download failed | errorCode: " + errorCode + " msg: " + e.getMessage());
         DownloadListener listener = downloadParams.getListener();
         if (listener == null) {
             return;
         }
         listener.onDownloadFailure(errorCode, e);
+        QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
     }
 
     private void checkAndSaveFileInfoToDB(DownloadInfo downloadInfo, boolean isFinished) {

@@ -1,6 +1,7 @@
 package org.lulu.quick_download;
 
 import org.lulu.quick_download.log.ILogger;
+import org.lulu.quick_download.retry.IRetryStrategy;
 
 import java.util.concurrent.Executor;
 
@@ -26,6 +27,11 @@ public class DownloadConfig {
      * Log
      */
     private ILogger logger;
+
+    /**
+     * 重试策略
+     */
+    private IRetryStrategy retryStrategy;
 
     /**
      * 线程数量
@@ -58,6 +64,13 @@ public class DownloadConfig {
             return DefaultDownloadConfig.THREAD_SIZE;
         }
         return threadCount;
+    }
+
+    public IRetryStrategy getRetryStrategy() {
+        if (retryStrategy == null) {
+            return DefaultDownloadConfig.retryStrategy();
+        }
+        return retryStrategy;
     }
 
     /**
@@ -95,6 +108,10 @@ public class DownloadConfig {
             return this;
         }
 
+        public Builder retryStrategy(IRetryStrategy retryStrategy) {
+            this.config.retryStrategy = retryStrategy;
+            return this;
+        }
 
         public DownloadConfig build() {
             return this.config;
