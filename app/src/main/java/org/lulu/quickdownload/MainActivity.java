@@ -47,9 +47,15 @@ public class MainActivity extends AppCompatActivity {
 
         bottomContainer.addText("下载进度:");
         progressBar = (ProgressBar) bottomContainer.addComponent(R.layout.progress_bar);
-        TextView tvThreadCount = bottomContainer.addText("线程数: " + QuickDownload.getInstance().getConfig().getThreadCount());
-        SeekBar seekBar = (SeekBar) bottomContainer.addComponent(R.layout.thread_count_seek_bar);
 
+//        QuickDownload.getInstance().setConfig(
+//                QuickDownload.getInstance().getConfig().newBuilder().threadCount(2).build()
+//        );
+
+        int threadCount = QuickDownload.getInstance().getConfig().getThreadCount();
+        TextView tvThreadCount = bottomContainer.addText("线程数: " + threadCount);
+        SeekBar seekBar = (SeekBar) bottomContainer.addComponent(R.layout.thread_count_seek_bar);
+        seekBar.setProgress(threadCount);
         QuickDownload.getInstance().setConfig(
                 QuickDownload.getInstance().getConfig().newBuilder().log(new ILogger() {
                     @Override

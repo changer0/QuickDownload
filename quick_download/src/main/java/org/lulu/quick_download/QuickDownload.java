@@ -1,8 +1,8 @@
 package org.lulu.quick_download;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * author: changer0
@@ -14,7 +14,7 @@ public class QuickDownload {
 
     private static volatile QuickDownload sInstance;
 
-    private final Map<String, DownloadTaskDispatcher> taskDispatcherMap = new HashMap<>();
+    private final Map<String, DownloadTaskDispatcher> taskDispatcherMap = new ConcurrentHashMap<>();
 
     private QuickDownload() {
     }
@@ -46,11 +46,11 @@ public class QuickDownload {
     /**
      * 添加下载任务
      */
-    public String addTask(String url, File desFile, DownloadListener listener) {
+    public synchronized String addTask(String url, File desFile, DownloadListener listener) {
         return addTask(new DownloadParams(url, desFile, listener));
     }
 
-    public String addTask(DownloadParams downloadParams) {
+    public synchronized String addTask(DownloadParams downloadParams) {
         String uniqueId = downloadParams.getUniqueId();
         DownloadTaskDispatcher downloadTaskDispatcher = taskDispatcherMap.get(uniqueId);
         //避免重复添加任务
@@ -65,11 +65,11 @@ public class QuickDownload {
         return uniqueId;
     }
 
-    public boolean pauseTask(String url, File desFile) {
+    public synchronized boolean pauseTask(String url, File desFile) {
         return pauseTaskById(new DownloadParams(url, desFile).getUniqueId());
     }
 
-    public boolean pauseTaskById(String id) {
+    public synchronized boolean pauseTaskById(String id) {
         DownloadTaskDispatcher downloadTaskDispatcher = taskDispatcherMap.get(id);
         if (downloadTaskDispatcher == null) {
             return false;
@@ -79,7 +79,7 @@ public class QuickDownload {
         return true;
     }
 
-    public void removeTask(String id) {
+    public synchronized void removeTask(String id) {
         taskDispatcherMap.remove(id);
     }
 }

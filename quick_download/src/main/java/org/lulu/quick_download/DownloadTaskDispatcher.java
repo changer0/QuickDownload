@@ -70,6 +70,12 @@ public class DownloadTaskDispatcher implements Runnable{
      */
     private final List<DownloadSegmentTask> downloadSegmentTasks = new CopyOnWriteArrayList<>();
 
+    /**
+     * 是否有正在运行的下载块任务
+     * 使用 volatile 保证线程安全
+     */
+    private volatile boolean hasDownloadSegmentTaskRunning = false;
+
     public DownloadTaskDispatcher(DownloadParams downloadParams) {
         this.downloadParams = downloadParams;
         okHttpClient = config.getOkHttpClient();
@@ -113,6 +119,10 @@ public class DownloadTaskDispatcher implements Runnable{
             DownloadUtil.close(response);
             notifyDownloadFailure(DownloadConstants.ERROR_CODE_UNKNOWN, new RuntimeException("prepareDownloadInfo totalLength <= 0"));
             LogUtil.e("obtain file total length failed!");
+            return;
+        }
+        if (!running) {
+            LogUtil.e("download task cancel: " + downloadParams.getUniqueId());
             return;
         }
         if (downloadInfo.isSupportBreakPointTrans()) {
@@ -258,6 +268,7 @@ public class DownloadTaskDispatcher implements Runnable{
     private void launchMultiThreadDownload() {
         LogUtil.i("launch multi thread download...");
         DownloadSegment[] segments = downloadInfo.getSegments();
+        hasDownloadSegmentTaskRunning = false;
         downloadSegmentTasks.clear();
         for (DownloadSegment segment : segments) {
             startSegmentDownload(segment);
@@ -275,6 +286,7 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         DownloadSegmentTask segmentTask = new DownloadSegmentTask(downloadParams, segment);
         downloadSegmentTasks.add(segmentTask);
+        hasDownloadSegmentTaskRunning = true;
         segmentTask.setListener(new DownloadSegmentTask.DownloadSegmentListener() {
             @Override
             public void onSuccess(DownloadSegment segment) {
@@ -323,9 +335,9 @@ public class DownloadTaskDispatcher implements Runnable{
      * 取消所有任务
      */
     public void cancel() {
-        if (downloadSegmentTasks.isEmpty()) {
-            quitProgress();
-            notifyDownloadFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("cancel"));
+        running = false;
+        if (!hasDownloadSegmentTaskRunning) {
+            notifyDownloadFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("downloadSegmentTasks empty cancel"));
             return;
         }
         for (DownloadSegmentTask downloadSegmentTask : downloadSegmentTasks) {
