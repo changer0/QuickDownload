@@ -123,6 +123,7 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         if (!running) {
             LogUtil.e("download task cancel: " + downloadParams.getUniqueId());
+            notifyDownloadFailure(DownloadConstants.ERROR_CODE_CANCEL, new Throwable("download cancel!"));
             return;
         }
         if (downloadInfo.isSupportBreakPointTrans()) {
@@ -268,7 +269,6 @@ public class DownloadTaskDispatcher implements Runnable{
     private void launchMultiThreadDownload() {
         LogUtil.i("launch multi thread download...");
         DownloadSegment[] segments = downloadInfo.getSegments();
-        hasDownloadSegmentTaskRunning = false;
         downloadSegmentTasks.clear();
         for (DownloadSegment segment : segments) {
             startSegmentDownload(segment);
@@ -286,7 +286,6 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         DownloadSegmentTask segmentTask = new DownloadSegmentTask(downloadParams, segment);
         downloadSegmentTasks.add(segmentTask);
-        hasDownloadSegmentTaskRunning = true;
         segmentTask.setListener(new DownloadSegmentTask.DownloadSegmentListener() {
             @Override
             public void onSuccess(DownloadSegment segment) {
@@ -336,10 +335,7 @@ public class DownloadTaskDispatcher implements Runnable{
      */
     public void cancel() {
         running = false;
-        if (!hasDownloadSegmentTaskRunning) {
-            notifyDownloadFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("downloadSegmentTasks empty cancel"));
-            return;
-        }
+        LogUtil.i("canceling ... ");
         for (DownloadSegmentTask downloadSegmentTask : downloadSegmentTasks) {
             downloadSegmentTask.cancel();
         }

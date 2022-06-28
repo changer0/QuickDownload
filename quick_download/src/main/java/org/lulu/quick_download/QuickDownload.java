@@ -75,7 +75,6 @@ public class QuickDownload {
             return false;
         }
         downloadTaskDispatcher.cancel();
-        removeTask(id);
         return true;
     }
 

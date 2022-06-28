@@ -3,8 +3,6 @@ package org.lulu.quick_download;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.lulu.quick_download.db.DownloadDBHandle;
-import org.lulu.quick_download.db.SegmentInfo;
 import org.lulu.quick_download.log.LogUtil;
 
 import java.io.IOException;
@@ -35,7 +33,7 @@ public class DownloadSegmentTask implements Runnable {
     /**
      * 开关
      */
-    private volatile boolean on = true;
+    private volatile boolean running = true;
 
     public DownloadSegmentTask(@NonNull DownloadParams downloadParams, @NonNull DownloadSegment segment) {
         this.segment = segment;
@@ -85,6 +83,7 @@ public class DownloadSegmentTask implements Runnable {
     }
 
     private void writeSegmentToFile(DownloadSegment segment, InputStream in) throws IOException {
+        if (checkRunning(segment)) return;
         RandomAccessFile raFile = DownloadUtil.prepareDownloadFile(params.getDescFile(), getStartWithDownload(segment));
         if (raFile == null) {
             throw new IOException("Create RandomAccessFile Failure");
@@ -94,8 +93,7 @@ public class DownloadSegmentTask implements Runnable {
         int len;
         try {
             while ((len = in.read(buffer, 0, DownloadConstants.BUFFER_SIZE)) > 0) {
-                if (!on) {
-                    notifyFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("segment " + segment.getIndex() + " cancel!"));
+                if (checkRunning(segment)) {
                     return;
                 }
                 segmentLen += len;
@@ -112,6 +110,17 @@ public class DownloadSegmentTask implements Runnable {
     }
 
     /**
+     * 检查时候开启状态
+     */
+    private boolean checkRunning(DownloadSegment segment) {
+        if (!running) {
+            notifyFailure(DownloadConstants.ERROR_CODE_CANCEL, new RuntimeException("segment " + segment.getIndex() + " cancel!"));
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 包含已经下载过的
      */
     private long getStartWithDownload(DownloadSegment segment) {
@@ -119,7 +128,7 @@ public class DownloadSegmentTask implements Runnable {
     }
 
     public void cancel() {
-        on = false;
+        running = false;
     }
 
     private void notifySuccess() {
