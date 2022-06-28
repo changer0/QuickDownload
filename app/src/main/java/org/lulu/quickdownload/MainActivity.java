@@ -116,8 +116,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onSegmentDownloadFinish(DownloadSegment segment) {
-                outPanelController.printlnI("MainActivity | onSegmentDownloadFinish " + segment);
+            public void onSegmentDownloadSuccess(DownloadSegment segment) {
+                outPanelController.printlnI("MainActivity | onSegmentDownloadSuccess " + segment);
+            }
+
+            @Override
+            public void onSegmentDownloadFailure(DownloadSegment segment, int errorCode, Throwable e) {
+                outPanelController.printlnE("MainActivity | onSegmentDownloadFailure " + segment + " errorCode: " + errorCode + " e: " + e.getMessage());
             }
 
             @Override
@@ -129,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDownloadFailure(int error, Throwable e) {
-                outPanelController.printlnE("MainActivity | onFailure " + Log.getStackTraceString(e));
+                outPanelController.printlnE("MainActivity | onFailure " + e.getMessage());
                 runOnUiThread(() -> Toast.makeText(MainActivity.this, "下载失败", Toast.LENGTH_SHORT).show());
             }
 

@@ -18,7 +18,7 @@ public class DownloadInfo {
     /**
      * 文件长度
      */
-    private long totalLength;
+    private long totalLength = -1;
 
     /**
      * 当前总进度

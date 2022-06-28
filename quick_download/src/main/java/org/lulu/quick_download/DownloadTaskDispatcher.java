@@ -270,21 +270,19 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         //可能已经下载过了
         if (segment.getState() == DownloadSegment.State.SUCCESS) {
-            notifyDownloadSegmentSuccess(segment);
+            notifySegmentDownloadSuccess(segment);
         }
         DownloadSegmentTask segmentTask = new DownloadSegmentTask(downloadParams, segment);
         downloadSegmentTasks.add(segmentTask);
         segmentTask.setListener(new DownloadSegmentTask.DownloadSegmentListener() {
             @Override
             public void onSuccess(DownloadSegment segment) {
-                notifyDownloadSegmentSuccess(segment);
+                notifySegmentDownloadSuccess(segment);
             }
 
             @Override
             public void onFailure(DownloadSegment segment, int errorCode, Throwable e) {
-
-                // TODO: 2022/6/25 此处做重试逻辑, 避免直接失败, 失败回调限制一次
-                notifyDownloadFailure(errorCode, e);
+                notifySegmentDownloadFailure(segment, errorCode, e);
             }
         });
         config.getExecutor().execute(segmentTask);
@@ -328,16 +326,34 @@ public class DownloadTaskDispatcher implements Runnable{
         }
     }
 
-    private void notifyDownloadSegmentSuccess(DownloadSegment segment) {
+    /**
+     * 通知每一块下载成功
+     */
+    private void notifySegmentDownloadSuccess(DownloadSegment segment) {
         DownloadListener listener = downloadParams.getListener();
         if (listener != null) {
-            listener.onSegmentDownloadFinish(segment);
+            listener.onSegmentDownloadSuccess(segment);
         }
         if (downloadInfo.isAllSegmentDownloadFinish()) {
             notifyDownloadSuccess();
         }
     }
 
+    /**
+     * 通知下载块失败!
+     */
+    private void notifySegmentDownloadFailure(DownloadSegment segment, int errorCode, Throwable e) {
+        DownloadListener listener = downloadParams.getListener();
+        if (listener != null) {
+            listener.onSegmentDownloadFailure(segment, errorCode, e);
+        }
+        notifyDownloadFailure(errorCode, e);
+    }
+
+
+    /**
+     * 通知所有下载完成
+     */
     private void notifyDownloadSuccess() {
         running = false;
         if (multiThreadDownloadSucceed) {
@@ -345,7 +361,7 @@ public class DownloadTaskDispatcher implements Runnable{
         }
         multiThreadDownloadSucceed = true;
 
-        saveFileInfoToDB(downloadInfo, true);
+        checkAndSaveFileInfoToDB(downloadInfo, true);
         QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
         DownloadListener listener = downloadParams.getListener();
         if (listener == null) {
@@ -355,6 +371,9 @@ public class DownloadTaskDispatcher implements Runnable{
         listener.onDownloadSuccess();
     }
 
+    /**
+     * 通知下载失败
+     */
     private synchronized void notifyDownloadFailure(int errorCode, Throwable e) {
         running = false;
         if (multiThreadDownloadFailed) {
@@ -364,7 +383,7 @@ public class DownloadTaskDispatcher implements Runnable{
 
         //停止
         progressHandlerThread.quit();
-        saveFileInfoToDB(downloadInfo, false);
+        checkAndSaveFileInfoToDB(downloadInfo, false);
         QuickDownload.getInstance().removeTask(downloadParams.getUniqueId());
         LogUtil.e("download failed | errorCode: " + errorCode + " msg: " + e.getMessage());
         DownloadListener listener = downloadParams.getListener();
@@ -374,7 +393,10 @@ public class DownloadTaskDispatcher implements Runnable{
         listener.onDownloadFailure(errorCode, e);
     }
 
-    private void saveFileInfoToDB(DownloadInfo downloadInfo, boolean isFinished) {
+    private void checkAndSaveFileInfoToDB(DownloadInfo downloadInfo, boolean isFinished) {
+        if (downloadInfo.getTotalLength() <= 0) {
+            return;
+        }
         DownloadDBHandle.getInstance().saveFileInfo(
                 new FileInfo(downloadInfo.getId(), downloadInfo.getTotalLength(), isFinished ? 1 : 0)
         );

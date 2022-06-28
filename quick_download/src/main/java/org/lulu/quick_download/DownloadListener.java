@@ -17,9 +17,23 @@ public interface DownloadListener {
     }
 
     /**
-     * 下载完成的块, 包括失败的块
+     * 下载块成功
      */
-    default void onSegmentDownloadFinish(DownloadSegment segment) {
+    default void onSegmentDownloadSuccess(DownloadSegment segment) {
+
+    }
+
+    /**
+     * 下载块失败
+     */
+    default void onSegmentDownloadFailure(DownloadSegment segment, int errorCode, Throwable e) {
+
+    }
+
+    /**
+     * 下载进度
+     */
+    default void onProgress(int progress) {
 
     }
 
@@ -32,9 +46,4 @@ public interface DownloadListener {
      * 下载失败
      */
     void onDownloadFailure(int errorCode, Throwable e);
-
-    /**
-     * 下载进度
-     */
-    void onProgress(int progress);
 }
