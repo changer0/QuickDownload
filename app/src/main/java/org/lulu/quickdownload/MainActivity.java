@@ -9,7 +9,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -19,7 +18,7 @@ import org.lulu.quick_download.DownloadInfo;
 import org.lulu.quick_download.DownloadListener;
 import org.lulu.quick_download.DownloadParams;
 import org.lulu.quick_download.DownloadSegment;
-import org.lulu.quick_download.ILogger;
+import org.lulu.quick_download.log.ILogger;
 import org.lulu.quick_download.QuickDownload;
 
 import java.io.File;

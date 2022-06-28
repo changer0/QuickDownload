@@ -1,4 +1,4 @@
-package org.lulu.quick_download;
+package org.lulu.quick_download.log;
 
 import androidx.annotation.Nullable;
 

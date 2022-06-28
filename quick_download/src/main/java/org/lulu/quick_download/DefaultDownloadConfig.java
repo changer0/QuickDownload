@@ -4,6 +4,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import org.lulu.quick_download.log.ILogger;
+
 import java.util.Collections;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;

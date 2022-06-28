@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import org.lulu.quick_download.db.DownloadDBHandle;
 import org.lulu.quick_download.db.SegmentInfo;
+import org.lulu.quick_download.log.LogUtil;
 
 import java.io.IOException;
 import java.io.InputStream;

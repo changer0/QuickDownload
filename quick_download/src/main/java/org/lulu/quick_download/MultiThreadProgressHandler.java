@@ -7,7 +7,7 @@ import android.os.Message;
 
 import androidx.annotation.NonNull;
 
-import java.io.File;
+import org.lulu.quick_download.log.LogUtil;
 
 /**
  * 多线程进度管理

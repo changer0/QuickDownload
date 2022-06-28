@@ -1,4 +1,6 @@
-package org.lulu.quick_download;
+package org.lulu.quick_download.log;
+
+import org.lulu.quick_download.QuickDownload;
 
 /**
  * author: changer0

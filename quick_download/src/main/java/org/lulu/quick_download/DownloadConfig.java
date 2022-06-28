@@ -1,5 +1,7 @@
 package org.lulu.quick_download;
 
+import org.lulu.quick_download.log.ILogger;
+
 import java.util.concurrent.Executor;
 
 import okhttp3.OkHttpClient;

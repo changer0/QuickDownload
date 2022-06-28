@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import org.lulu.quick_download.db.DownloadDBHandle;
 import org.lulu.quick_download.db.FileInfo;
 import org.lulu.quick_download.db.SegmentInfo;
+import org.lulu.quick_download.log.LogUtil;
 
 import java.io.File;
 import java.io.IOException;
