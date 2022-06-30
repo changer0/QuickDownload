@@ -14,6 +14,43 @@
 
 ![](doc/sample.png)
 
-## 原理
+## 使用方式
+
+1. 配置
+
+调用以下方法进行配置:
+
+
+```
+QuickDownload.getInstance().setConfig(
+        QuickDownload.getInstance().getConfig().newBuilder()
+                .okHttpClient()//okHttpClient
+                .executor()//线程池
+                .log()//日志系统
+                .threadCount()//指定线程个数
+                .retryStrategy()//重试策略
+                .build()
+);
+
+```
+
+> 所有配置项都是可选项, 都有默认的配置参数, 可参考: DefaultDownloadConfig
+
+2. 添加下载任务
+
+``` 
+// 返回下载 Id, 可用于暂停任务, 监听器可参考: DownloadListener 
+downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, listener)
+```
+
+> 任务 ID 的生成规则: 下载 URL + 下载文件地址全路径 字符串拼接后取 SHA256
+
+3. 暂停任务
+
+```
+QuickDownload.getInstance().pauseTaskById(downloadId)
+```
+
+## 方案
 
 TODO
