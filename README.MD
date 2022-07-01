@@ -53,4 +53,6 @@ QuickDownload.getInstance().pauseTaskById(downloadId)
 
 ## 方案
 
-TODO
+时序图:
+
+![](doc/design_sequence.png)

@@ -1,0 +1,54 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title: QuickDownload 下载时序图
+
+actor User
+
+User -> QuickDownload: addTask: 添加下载任务
+User <-- QuickDownload: 立即返回 downloadId
+QuickDownload -> DownloadTaskDispatcher : run
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++--: 预请求, 获取文件长度\n等基础信息
+
+alt 异常
+User <-- DownloadTaskDispatcher: notifyDownloadFailure
+end
+
+alt 支持断点续传
+
+autonumber
+
+DownloadTaskDispatcher -> DownloadDBHandle ++ : getFileInfo, DB 中获取文件信息
+DownloadTaskDispatcher <-- DownloadDBHandle -- : 返回
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++--: checkLocalFileInfo \n比对文件长度中基本信息\n验证DB文件有效性
+note left: 如果无效则清空 DB 中保留的数据
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++ : splitSegments \n 根据文件长度分片
+DownloadTaskDispatcher -> DownloadDBHandle ++ : getSegmentInfo \n 获取
+DownloadTaskDispatcher <-- DownloadDBHandle -- : 返回
+DownloadTaskDispatcher -> DownloadTaskDispatcher: 处理分片任务
+note left: 比对 DB 中下载块进度等信息创建下载块(segment)
+User <-- DownloadTaskDispatcher -- : notifyReady
+
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++ : launchMultiThreadDownload \n 启动多线程下载
+DownloadTaskDispatcher -> DownloadSegmentTask ++ : run 启动任务
+note left: 循环遍历所有 Segment, 添加到 Task 中
+note right: 根据每个分片信息\n启动下载
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++-- : startMultiThreadProgressLooper \n 启动进度轮询器
+DownloadTaskDispatcher <-- DownloadSegmentTask -- : 成功/失败通知
+User <-- DownloadTaskDispatcher -- : 根据下载块的通知过滤后通知外部
+
+else 不支持断点续传
+
+autonumber
+
+User <-- DownloadTaskDispatcher: notifyReady
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++ : launchSingleThreadDownload \n 启动单线程下载
+DownloadTaskDispatcher -> DownloadTaskDispatcher ++-- : startSingleThreadProgressLooper \n 启动进度轮询器
+DownloadTaskDispatcher -> DownloadUtil ++ : directDownload \n 直接下载
+DownloadTaskDispatcher <-- DownloadUtil -- : 返回
+User <-- DownloadTaskDispatcher -- : 通知外部
+
+end
+
+autonumber stop
+@enduml
