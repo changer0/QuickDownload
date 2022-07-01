@@ -20,7 +20,6 @@
 
 调用以下方法进行配置:
 
-
 ```
 QuickDownload.getInstance().setConfig(
         QuickDownload.getInstance().getConfig().newBuilder()
@@ -31,7 +30,6 @@ QuickDownload.getInstance().setConfig(
                 .retryStrategy()//重试策略
                 .build()
 );
-
 ```
 
 > 所有配置项都是可选项, 都有默认的配置参数, 可参考: DefaultDownloadConfig
