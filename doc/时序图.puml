@@ -23,7 +23,7 @@ DownloadTaskDispatcher <-- DownloadDBHandle -- : 返回
 DownloadTaskDispatcher -> DownloadTaskDispatcher ++--: checkLocalFileInfo \n比对文件长度中基本信息\n验证DB文件有效性
 note left: 如果无效则清空 DB 中保留的数据
 DownloadTaskDispatcher -> DownloadTaskDispatcher ++ : splitSegments \n 根据文件长度分片
-DownloadTaskDispatcher -> DownloadDBHandle ++ : getSegmentInfo \n 获取
+DownloadTaskDispatcher -> DownloadDBHandle ++ : getSegmentInfo \n DB 中获取下载块信息\n(eg:下载进度等)
 DownloadTaskDispatcher <-- DownloadDBHandle -- : 返回
 DownloadTaskDispatcher -> DownloadTaskDispatcher: 处理分片任务
 note left: 比对 DB 中下载块进度等信息创建下载块(segment)
