@@ -1,7 +1,8 @@
-
 # QuickDownload 下载工具
 
-## 特点
+
+
+## 1 特点
 
 1. 支持多线程下载
 2. 支持断点续传
@@ -10,17 +11,13 @@
 5. 依据OCP(开闭原则)实现，灵活配置各种能力(线程池, 日志, OkHttpClient, 重试策略)
 6. 单线程兜底下载
 
-## 示例
-
-![](doc/sample.png)
-
-## 使用方式
+## 2 使用方式
 
 1. 配置
 
 调用以下方法进行配置:
 
-```
+```java
 QuickDownload.getInstance().setConfig(
         QuickDownload.getInstance().getConfig().newBuilder()
                 .okHttpClient()//okHttpClient
@@ -36,7 +33,7 @@ QuickDownload.getInstance().setConfig(
 
 2. 添加下载任务
 
-``` 
+``` java
 // 返回下载 Id, 可用于暂停任务, 监听器可参考: DownloadListener 
 downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, listener)
 ```
@@ -45,12 +42,26 @@ downloadId = QuickDownload.getInstance().addTask(downloadUrl, descFile, listener
 
 3. 暂停任务
 
-```
+```java
 QuickDownload.getInstance().pauseTaskById(downloadId)
 ```
 
-## 方案
+## 3 方案设计
 
-时序图:
+类图设计:
+
+![](doc/design_class.png)
+
+时序图设计:
 
 ![](doc/design_sequence.png)
+
+## 4 示例图
+
+![](doc/sample.png)
+
+## 5 开源地址
+
+[https://github.com/changer0/QuickDownload](https://github.com/changer0/QuickDownload)
+
+欢迎提 issue ![img](doc/17E133EB.png)

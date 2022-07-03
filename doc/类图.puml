@@ -1,0 +1,41 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+title QuickDownload 类图
+
+class DownloadConfig {
+Executor executor
+OkHttpClient okHttpClient
+ILogger logger
+IRetryStrategy retryStrategy
+}
+
+class DownloadTaskDispatcher {
+List<DownloadSegmentTask> downloadSegmentTasks
+}
+
+
+
+DownloadConfig o-- Executor
+DownloadConfig o-- OkHttpClient
+DownloadConfig o-- ILogger
+DownloadConfig o-- IRetryStrategy
+
+QuickDownload o- DownloadConfig
+Runnable <|.. DownloadTaskDispatcher
+QuickDownload o---- DownloadTaskDispatcher
+note top: 负责下载任务分发
+DownloadTaskDispatcher o- DownloadSegmentTask
+note right: 负责 Segment 下载
+
+
+class DownloadSegmentTask implements Runnable{
+DownloadSegment segment
+}
+
+'Collection <|- List
+'AbstractCollection <|- AbstractList
+'AbstractList <|- ArrayList
+
+
+@enduml
