@@ -70,12 +70,6 @@ public class DownloadTaskDispatcher implements Runnable{
      */
     private final List<DownloadSegmentTask> downloadSegmentTasks = new CopyOnWriteArrayList<>();
 
-    /**
-     * 是否有正在运行的下载块任务
-     * 使用 volatile 保证线程安全
-     */
-    private volatile boolean hasDownloadSegmentTaskRunning = false;
-
     public DownloadTaskDispatcher(DownloadParams downloadParams) {
         this.downloadParams = downloadParams;
         okHttpClient = config.getOkHttpClient();
