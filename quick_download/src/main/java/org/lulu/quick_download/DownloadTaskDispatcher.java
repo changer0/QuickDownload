@@ -198,28 +198,15 @@ public class DownloadTaskDispatcher implements Runnable{
         //每个分块的大小
         long splitSize = len / threadCount;
         //获取所有下载块
-        List<SegmentInfo> segmentInfoList = DownloadDBHandle.getInstance().getSegmentInfo(downloadParams.getUniqueId());
+        List<SegmentInfo> dbSegmentInfoList = DownloadDBHandle.getInstance().getSegmentInfo(downloadParams.getUniqueId());
 
-        LogUtil.i("saved downloadSegments: " + segmentInfoList);
+        LogUtil.i("saved downloadSegments: " + dbSegmentInfoList);
 
         //根据线程数拆分
         for (int i = 0; i < segments.length; i++) {
             DownloadSegment segment = new DownloadSegment(downloadParams.getUniqueId(), i);
-
-            //读取已保存的进度
-            if (!segmentInfoList.isEmpty()) {
-                for (int j = 0; j < segmentInfoList.size(); j++) {
-                    SegmentInfo savedSegment = segmentInfoList.get(j);
-                    if (savedSegment.getIndex() == i ) {
-                        //只检查成功状态
-                        if (savedSegment.getFinished() == 1) {
-                            segment.setState(DownloadSegment.State.SUCCESS);
-                        }
-                        segment.setDownloadLength(savedSegment.getDownloadPos());
-                    }
-                }
-            }
-
+            //先从DB读取下载块,主要是进度和下载状态
+            readDBSegment(dbSegmentInfoList, i, segment);
             //开始位置
             long startPos = i * splitSize;
             segment.setStartPos(startPos);
@@ -233,6 +220,25 @@ public class DownloadTaskDispatcher implements Runnable{
             //结束位置
             segment.setEndPos(end);
             segments[i] = segment;
+        }
+    }
+
+    /**
+     * 读取已保存的进度
+     */
+    private void readDBSegment(List<SegmentInfo> segmentInfoList, int i, DownloadSegment segment) {
+        if (!segmentInfoList.isEmpty()) {
+            for (int j = 0; j < segmentInfoList.size(); j++) {
+                SegmentInfo savedSegment = segmentInfoList.get(j);
+                if (savedSegment.getIndex() == i) {
+                    //只检查成功状态
+                    if (savedSegment.getFinished() == 1) {
+                        segment.setState(DownloadSegment.State.SUCCESS);
+                    }
+                    segment.setDownloadLength(savedSegment.getDownloadPos());
+                    break;
+                }
+            }
         }
     }
 
